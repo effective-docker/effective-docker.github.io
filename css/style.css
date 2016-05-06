@@ -1,0 +1,323 @@
+@font-face {
+    font-family: 'lucida_hand';
+    src: url('../fonts/lucida_handwriting-webfont.eot');
+    src: url('../fonts/lucida_handwriting-webfont.eot?#iefix') format('embedded-opentype'),
+    url('../fonts/lucida_handwriting-webfont.woff') format('woff');
+  /*  url('../fonts/lucida_handwriting-webfont.ttf') format('truetype'),
+    url('../fonts/lucida_handwriting-webfont.svg#LucidaHandwritingItalic') format('svg'); */
+    font-weight: normal;
+    font-style: normal;
+}
+
+/*Style Media query not recognized by IE 7+8 @see style-ie-css*/
+@media only screen and (min-width: 1281px){
+
+    .site-image {
+        background-attachment: fixed;
+        background-repeat: no-repeat;
+        background-position: left bottom;
+        height:1000px;
+        width: 297px;
+        bottom: 0px;
+        left: 0px;
+        visibility: visible;
+        z-index: 1;
+        position: fixed;
+        left: 0px;
+        bottom: 0px;
+    }
+    .md {
+        background-image: url(../images/effective/large/md.png);
+    }
+
+    .ninja {
+        background-image: url(../images/effective/large/ninja_large.png);
+    }
+
+    .side-container {
+        position:absolute;
+        top:220px;
+        right: 160px;
+        max-width: 160px;
+    }
+}
+
+@media (max-width: 1880px){
+    /*
+    only display side container for large screens
+    */
+    .side-container {
+        display: none;
+    }
+}
+
+@media only screen and (min-width: 600px) {
+    .top-page {
+        background-image: url("../images/effective/large/muenchen.png");
+        background-position: center bottom;
+        background-repeat: no-repeat;
+        background-size: 300px;
+    }
+
+}
+
+@media only screen and (min-width: 770px) {
+    .freelancer-of-the-year {
+        background-image: url("../images/it-freelancer.png");
+        background-repeat: no-repeat;
+        min-width: 231px;
+        min-height: 224px;
+        position: absolute;
+        right: 0px;
+        top: 0px;
+        z-index: -1000;
+    }
+}
+
+
+@media only screen and (max-width: 850px){
+/*
+the name in the logo disappears when we get too small
+*/
+.logo-name {
+display:none
+}
+}
+
+body{
+    font-size: 14px;
+    font-weight: 300;
+    line-height: 22.5px;
+    margin-bottom: 0;
+}
+
+
+.full-width {
+    padding-left: 15px;
+    padding-right: 15px;
+}
+
+
+.scrollable {
+    overflow: scroll;
+}
+
+
+.no-border {
+  border: none;
+}
+
+.effective {
+    font-family: lucida_hand;
+    color: #6AAD2E;
+    margin-right: 5px;
+}
+
+.important-note {
+    font-family: arial;
+    font-size: 20px;
+    font-weight: bold;;
+}
+
+.paragraph {
+    margin-bottom: 15px;
+}
+
+a{
+    color: #6AAD2E;
+    border: 0px;
+}
+
+a.white{
+    color: white;
+    border: 0px;
+    text-decoration: underline;
+}
+
+.green {
+    color:#6AAD2E;
+}
+#projects
+.curr_entry {
+    margin-left: 25px;
+    position: relative;;
+}
+
+.container {
+    border: 0px;
+}
+
+a img {
+    border: none;
+}
+
+
+.training-container {
+    border-bottom: 1px solid #6AAD2E;
+    padding: 10px;
+    min-height: 150px;
+    margin-top: 10px;
+    padding-bottom: 25px;
+    margin-bottom: 25px;
+}
+
+.presentation-zen-style {
+    /* no bullet points:)   */
+    list-style: none;
+}
+
+
+/*validation*/
+.error{
+   background-color: red;
+}
+
+.large-text {
+    font-size: 25px;
+    font-weight: normal;
+}
+
+.effective-headline {
+    font-size: 25px;
+    font-weight: normal;
+    max-width: 480px;
+}
+
+.effective-text-black {
+    color: black;
+    font-size: 16px;
+    font-family: lucida_hand;
+    margin-right: 5px;
+}
+
+.effective-text-white {
+    color: white;
+    font-size: 16px;
+    font-family: lucida_hand;
+    margin-right: 5px;
+}
+
+.simple-black {
+    color:black;
+}
+
+.top-margin {
+   margin-top: 25px;
+}
+
+.workshop-ul h4 {
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+.workshop-ul ul{
+    list-style: none;
+}
+
+.workshop-ul li {
+}
+
+.left-padding{
+   margin-left: 2em;
+}
+
+.top-page {
+
+    position:relative;
+    height: 150px;
+}
+
+.bordered {
+    border: 1px solid black;
+    background: white;
+}
+
+.green-well {
+    color:white;
+    background-color: #6AAD2E;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    border-radius: 4px 4px 4px 4px;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05) inset;
+    margin-bottom: 20px;
+    min-height: 20px;
+    padding: 19px;
+}
+
+.green-well ul li {
+    margin-bottom: 10px;
+}
+
+.white-well {
+    color:black;
+    background-color: #FFFFFF;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    border-radius: 4px 4px 4px 4px;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05) inset;
+    margin-bottom: 20px;
+    min-height: 20px;
+    padding: 19px;
+}
+
+.green-well-tight {
+    color:white;
+    background-color: #6AAD2E;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    border-radius: 4px 4px 4px 4px;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05) inset;
+}
+
+.green-well-tight > small {
+    color: #DDDDDD;
+}
+
+.bigger-text {
+    font-size: 16px;
+}
+
+
+.logo-container {
+    /*
+    give a left margin, so that text does not disappear
+    */
+    margin-left: 50px;
+}
+
+/*
+overriding bootstrap styles
+*/
+.nav-collapse .nav > li > a{text-decoration:none;color:black; !important}
+.skill-container blockquote { border-left:none; min-height: 160px !important; padding-top: 19px; padding-bottom: 19px; margin-bottom: 20px }
+.skill-container blockquote p {font-weight: bold}
+
+.page-header h2 {
+    font-size: 18px;
+}
+
+.black {
+    color: black;
+}
+
+/*
+spam protection
+*/
+.nope {
+    display: none !important;
+}
+
+/*
+only needed for git tutorial
+*/
+.sidebarblock {
+    color:black;
+    background-color: #F5F5F5;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    border-radius: 4px 4px 4px 4px;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05) inset;
+    margin-bottom: 20px;
+    min-height: 20px;
+    padding: 19px;
+}
+
+h1,h2,h3,h4 {
+    margin-bottom: 15px;
+}
