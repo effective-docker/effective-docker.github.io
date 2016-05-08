@@ -14,10 +14,9 @@
     <meta name="author" content="Your name goes here"/>
     <meta name="copyright" content="Maybe consider a Creative Commons license"/>
 
-    <link rel="stylesheet" href="{{page.root}}css/foundation.css"/>
-    <link rel="stylesheet" href="{{page.root}}css/font-awesome.css"/>
-    <link rel="stylesheet" href="{{page.root}}css/coderay.css"/>
-    <link rel="stylesheet" href="{{page.root}}css/asciidoctor.css"/>
+    {% include header.html %}
+
+    <link rel="stylesheet" href="{{page.root}}css/app.css"/>
     <script src="{{page.root}}js/vendor/modernizr.js"></script>
     <script src="{{page.root}}js/toc.js"></script>
 </head>
@@ -25,10 +24,9 @@
 
 
 <!-- Nav Bar -->
-
-<nav class="top-bar" data-topbar>
+<div class="container">
+<!--nav class="top-bar" data-topbar>
     <ul class="title-area">
-        <!-- Title Area -->
         <li class="name">
             <h1>
                 <a href="{{page.root}}">
@@ -38,7 +36,10 @@
         </li>
         <li class="toggle-topbar menu-icon"><a href="#"><span>Menu</span></a></li>
     </ul>
-</nav>
+</nav-->
+
+{% include navbar.html %}
+
 <!-- End Nav -->
 
 
@@ -47,7 +48,7 @@
 <div class="row">
 
     <!-- Main Blog Content -->
-    <div class="large-9 columns" role="content">
+    <div class="col-sm-8 blog-main" role="content">
 
         {{ content }}
 
@@ -57,20 +58,21 @@
 
     <!-- Sidebar -->
 
-    <aside class="large-3 columns">
+    <aside class="col-sm-3 col-sm-offset-1 blog-sidebar">
 
-        <h4>Posts</h4>
+        <h4>Die letzten 5</h4>
         <ul id="posts" class="posts nav">
             {% for post in site.posts limit: 5 %}
-            <li><a href=".{{ post.url }}">{{ post.shortTitle }}</a></li>
+            <li><a href="{{ post.url }}">{{ post.shortTitle }}</a></li>
             {% endfor %}
         </ul>
 
-        <div class="panel">
-            <h5>Featured</h5>
+        <div class="sidebar-well">
+            <h5>Über mich</h5>
 
-            <p>Pork drumstick turkey fugiat. Tri-tip elit turducken pork chop in. Swine short ribs meatball irure bacon
-                nulla pork belly cupidatat meatloaf cow.</p>
+            <p>Ich bin Martin. Freiberuflicher Softwareentwickler / Consultant / Trainer. </p>
+            Verteilte Systeme, Resilient Software und Craftmanship.
+            10+ Jahre Erfahrung, <a href="http://www.amazon.de/gp/product/B00HXURPHG/ref=as_li_qf_sp_asin_tl?ie=UTF8&camp=1638&creative=6742&creativeASIN=B00HXURPHG&linkCode=as2&tag=splitshadewor-21">Buch-Autor</a>, Git-Trainer, Geek, Daddy.
         </div>
 
     </aside>
@@ -88,7 +90,7 @@
         <hr/>
         <div class="row">
             <div class="large-12 columns">
-                <p>Footer</p>
+                {% include footer.html %}
             </div>
         </div>
     </div>
@@ -107,5 +109,7 @@
     var doc = document.documentElement;
     doc.setAttribute('data-useragent', navigator.userAgent);
 </script>
+
+</div>
 </body>
 </html>
