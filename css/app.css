@@ -1,4 +1,12 @@
 @charset "UTF-8";
+@media only screen and (min-width: 600px) {
+  .top-page {
+    background-image: url("/assets/images/muenchen.png");
+    background-position: center bottom;
+    background-repeat: no-repeat;
+    background-size: 300px;
+  }
+}
 /*!
  * Bootstrap v3.3.6 (http://getbootstrap.com)
  * Copyright 2011-2015 Twitter, Inc.
