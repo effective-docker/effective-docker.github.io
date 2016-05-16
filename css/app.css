@@ -5028,7 +5028,7 @@ tbody.collapse.in {
 }
 .navbar-default {
   background-color: white;
-  border-color: #eeeeee;
+  border-color: #5a9327;
 }
 .navbar-default .navbar-brand {
   color: #777;
@@ -5066,7 +5066,7 @@ tbody.collapse.in {
 }
 .navbar-default .navbar-collapse,
 .navbar-default .navbar-form {
-  border-color: #eeeeee;
+  border-color: #5a9327;
 }
 .navbar-default .navbar-nav > .open > a, .navbar-default .navbar-nav > .open > a:hover, .navbar-default .navbar-nav > .open > a:focus {
   background-color: #eeeeee;
