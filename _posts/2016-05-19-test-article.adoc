@@ -17,3 +17,12 @@ class Test {
    private static final String boo="Boohoo";
 }
 ----
+
+
+++++
+{% highlight ruby %}
+class Test {
+   private static final String boo="Boohoo";
+}
+{% end highlight %}
+++++
