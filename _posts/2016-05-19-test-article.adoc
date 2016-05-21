@@ -1,0 +1,19 @@
+---
+layout: default
+title: Jekyll-Asciidoc Quickstart
+shortTitle: Entry short title
+documentationExpanded: false
+comments: true
+postsExpanded: true
+excerpt: excerpt
+root: ../../
+---
+
+das ist nur ein test
+
+[source, java]
+----
+class Test {
+   private static final String boo="Boohoo";
+}
+----
