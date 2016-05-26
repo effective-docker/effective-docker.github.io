@@ -6,7 +6,7 @@ documentationExpanded: false
 comments: true
 postsExpanded: true
 categories: microservices, spring-boot,distributed-systems
-published: false
+published: true
 excerpt: excerpt
 root: ../../
 ---
