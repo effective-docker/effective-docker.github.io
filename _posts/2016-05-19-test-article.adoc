@@ -5,6 +5,8 @@ shortTitle: Entry short title
 documentationExpanded: false
 comments: true
 postsExpanded: true
+categories: microservices, spring-boot,distributed-systems
+published: false
 excerpt: excerpt
 root: ../../
 ---
@@ -17,12 +19,3 @@ class Test {
    private static final String boo="Boohoo";
 }
 ----
-
-
-++++
-{% highlight ruby %}
-class Test {
-   private static final String boo="Boohoo";
-}
-{% end highlight %}
-++++

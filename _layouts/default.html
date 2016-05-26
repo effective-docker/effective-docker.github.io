@@ -25,90 +25,105 @@
 
 <!-- Nav Bar -->
 <div class="container">
-<!--nav class="top-bar" data-topbar>
-    <ul class="title-area">
-        <li class="name">
-            <h1>
-                <a href="{{page.root}}">
-                    {{page.title}}
-                </a>
-            </h1>
-        </li>
-        <li class="toggle-topbar menu-icon"><a href="#"><span>Menu</span></a></li>
-    </ul>
-</nav-->
-
-{% include navbar.html %}
-
-<!-- End Nav -->
-
-
-<!-- Main Page Content and Sidebar -->
-
-<div class="row">
-
-    <!-- Main Blog Content -->
-    <div class="col-sm-8 blog-main" role="content">
-
-        {{ content }}
-
-    </div>
-
-    <!-- End Main Content -->
-
-    <!-- Sidebar -->
-
-    <aside class="col-sm-3 col-sm-offset-1 blog-sidebar">
-
-        <h4>Die letzten 5</h4>
-        <ul id="posts" class="posts nav">
-            {% for post in site.posts limit: 5 %}
-            <li><a href="{{ post.url }}">{{ post.shortTitle }}</a></li>
-            {% endfor %}
+    <!--nav class="top-bar" data-topbar>
+        <ul class="title-area">
+            <li class="name">
+                <h1>
+                    <a href="{{page.root}}">
+                        {{page.title}}
+                    </a>
+                </h1>
+            </li>
+            <li class="toggle-topbar menu-icon"><a href="#"><span>Menu</span></a></li>
         </ul>
+    </nav-->
 
-        <div class="sidebar-well">
-            <h5>Über mich</h5>
+    {% include navbar.html %}
 
-            <p>Ich bin Martin. Freiberuflicher Softwareentwickler / Consultant / Trainer. </p>
-            Verteilte Systeme, Resilient Software und Craftmanship.
-            10+ Jahre Erfahrung, <a href="http://www.amazon.de/gp/product/B00HXURPHG/ref=as_li_qf_sp_asin_tl?ie=UTF8&camp=1638&creative=6742&creativeASIN=B00HXURPHG&linkCode=as2&tag=splitshadewor-21">Buch-Autor</a>, Git-Trainer, Geek, Daddy.
+    <!-- End Nav -->
+
+
+    <!-- Main Page Content and Sidebar -->
+
+    <div class="row">
+
+        <!-- Main Blog Content -->
+        <div class="col-sm-8 blog-main" role="content">
+
+            {{ content }}
+
         </div>
 
-    </aside>
+        <!-- End Main Content -->
 
-    <!-- End Sidebar -->
-</div>
+        <!-- Sidebar -->
 
-<!-- End Main Content and Sidebar -->
+        <aside class="col-sm-3 col-sm-offset-1 blog-sidebar">
+
+            <h4>Die letzten 5</h4>
+            <ul id="posts" class="posts nav">
+                {% assign tags_list = site.categories %}
+                {% if tags_list.first[0] == null %}
+                {% for tag in tags_list %}
+                <li><a href="#{{ tag }}">{{ tag | capitalize }} <span>{{ site.tags[tag].size }}</span></a></li>
+                {% endfor %}
+                {% else %}
+                {% for tag in tags_list %}
+                <li><a href="#{{ tag[0] }}">{{ tag[0] | capitalize }} <span>{{ tag[1].size }}</span></a></li>
+                {% endfor %}
+                {% endif %}
+                {% assign tags_list = nil %}
+            </ul>
+
+            <div class="sidebar-well">
+                <h5>Über mich</h5>
+
+                <p>Ich bin Martin. Freiberuflicher Softwareentwickler / Consultant / Trainer. </p>
+                Verteilte Systeme, Resilient Software und Craftmanship.
+                10+ Jahre Erfahrung, <a
+                    href="http://www.amazon.de/gp/product/B00HXURPHG/ref=as_li_qf_sp_asin_tl?ie=UTF8&camp=1638&creative=6742&creativeASIN=B00HXURPHG&linkCode=as2&tag=splitshadewor-21">Buch-Autor</a>,
+                Git-Trainer, Geek, Daddy.
+            </div>
+
+        </aside>
+
+        <!-- End Sidebar -->
+    </div>
+    <!-- End Main Content and Sidebar -->
 
 
-<!-- Footer -->
+    <!-- Footer -->
 
-<footer class="row">
-    <div class="large-12 columns">
-        <hr/>
-        <div class="row">
-            <div class="large-12 columns">
-                {% include footer.html %}
+    <ul id="all-posts" class="posts nav">
+        {% for post in site.posts %}
+        <li><a href="{{ post.url }}">{{ post.shortTitle }}</a></li>
+        {% endfor %}
+    </ul>
+
+    <footer class="row">
+        <div class="large-12 columns">
+            <hr/>
+            <div class="row">
+                <div class="large-12 columns">
+                    {% include footer.html %}
+                </div>
             </div>
         </div>
-    </div>
-</footer>
+    </footer>
 
-<script src="{{page.root}}js/vendor/jquery.js"></script>
-<script src="{{page.root}}js/foundation.min.js"></script>
-<script>
-    $(document).foundation();
-</script>
-<script src="{{page.root}}js/vendor/jquery.js"></script>
-<script src="{{page.root}}js/foundation/foundation.js"></script>
-<script>
-    $(document).foundation();
+    <script src="{{page.root}}js/vendor/jquery.js"></script>
+    <script src="{{page.root}}js/foundation.min.js"></script>
+    <script>
+        $(document).foundation();
+    </script>
+    <script src="{{page.root}}js/vendor/jquery.js"></script>
+    <script src="{{page.root}}js/foundation/foundation.js"></script>
+    <script>
+        $(document).foundation();
 
-    var doc = document.documentElement;
-    doc.setAttribute('data-useragent', navigator.userAgent);
-</script>
+        var doc = document.documentElement;
+        doc.setAttribute('data-useragent', navigator.userAgent);
+    </script>
 
 </div>
 </body>
