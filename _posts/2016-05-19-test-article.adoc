@@ -5,7 +5,7 @@ shortTitle: Entry short title
 documentationExpanded: false
 comments: true
 postsExpanded: true
-categories: microservices, spring-boot,distributed-systems
+categories: microservices, spring-boot, distributed-systems
 published: true
 excerpt: excerpt
 root: ../../
