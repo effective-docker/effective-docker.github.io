@@ -1,0 +1,99 @@
+---
+layout: default
+title: Microservices auf Commodity Hardware Teil 1 - Das System aufsetzen
+shortTitle: Microservices und Commodity Hardware - Teil 1
+documentationExpanded: false
+comments: true
+postsExpanded: true
+categories: microservices spring-boot distributed-systems
+excerpt: excerpt
+root: ../../
+---
+
+= Scaling out Microservices - Verteilte Systeme auf einfachster Hardware - Teil 1
+
+== Das Projekt
+
+Verteilte Systeme sind aus der Sicht eines IT Experten unglaublich interessant. Man kann hier so ziemlich alles
+praktisch anwenden, was man während des Studiums gelernt hat.
+
+- Netzwerk Know How
+- Verteilte Systeme
+- Data Sharding
+- Betriebssysteme
+- Konfigurationsmanagement
+- Modulare Software
+- Ausfallsicherheit
+- ... vieles mehr...
+
+Und... verteilte Systeme sind gerade sehr gefragt. Von einem IT Experten wird erwartet, dass sich dieser mit
+verteilten Systemen beschäftigt. Heutzutage nennt man verteilte Systeme grundsätzlich _Microservices_, denn dies ist
+das Marketing-taugliche Buzzword was sich mehr als gut verkaufen lässt.
+Auch dieser _Hype_ wird vorbeigehen und genauso wie _SOA_ verbrannte Erde zurücklassen soweit das Auge reicht. Nichts
+ desto trotz sind die Ideen und Konzepte hinter dem Begriff _Microservice_ alles andere als neu.
+
+Was ist denn jetzt das große Verkaufsargument für ein verteiltes System im Gegenteil zu dem _momentan_ verhassten
+Monlithen? Das Verkaufsargument Nummer 1 lautet _Time to Market_. Microservices lassen sich schnell entwickeln,
+schnell ändern und schnell neu schreiben. Faustregel, die ich für realistisch halte - ein _Microservice_ sollte
+innerhalb von 2-3 Wochen _from scratch_ neu geschrieben werden können.
+
+Wir unterteilen unser System also in kleine, leicht wartbare, verständliche Bausteine und Einheiten und sorgen dafür,
+dass diese Bausteine miteinander kommunizieren können. So wird das System ganz automatisch sehr modular und wir haben
+ gar keine Möglichkeit, Dinge miteinander zu vermischen, die nicht zusammen gehören.
+
+Warum aber muss das so kompliziert sein? Wenn wir mit verteilten Systemen arbeiten haben wir eine ganze Menge an
+ zusätzlicher _accidential complexity_, also Komplexität die nicht inhärent aus der Fachdomäne kommt, sondern die
+ direkt der eingesetzten Technik zuzuschreiben ist.
+ Das ist ein Tradeoff - wir tauschen Modularität (und natürlich alle weiteren Vorteile) gegen Komplexität im Betrieb
+ und der Entwicklung (und natürlich alle weiteren Nachteile).
+
+Warum muss das aber ein verteiltes System sein? Ich (und ihr hoffentlicha auch...) habe modulare Systeme geschrieben,
+die in einem einzigen Deployable geliefert wurden - ein Monolith! *Sakrileg!*
+Das funktioniert wunderbar, wenn man alleine ist oder in einem sehr kleinen Team - ich persönlich würde niemals,
+niemals, niemals ein verteiltes System entwickeln, wenn ich nur 2-3 Entwickler habe, die sich um dieses System
+kümmern. Der Mehraufwand steht in keinem Verhältnis zu den Vorteilen, die uns _Microservices_ in diesem Fall bieten.
+Das Verteilen macht dann Sinn, wenn wir es mit großen Teams zu tun haben, die an vielen verschiedenen Baustellen
+eines Systems gleichzeitig arbeiten.
+Sobald es unmöglich wird, den Gesamtüberblick über das System zu behalten könnte man darüber nachdenken, die sowieso schon implizite Aufteilung (einige Entwickler arbeiten hauptsächlich an Komponente A, andere Entwickler arbeiten hauptsächlich an Komponente B) explizit zu machen und das System in funktionale (und verteilte) Blöcke zu zerlegen.
+
+Man kann natürlich auch auf die Möglichkeiten der Sprache zurückgreifen. Wenn wir uns das Beispiel *Java*
+herauspicken, dann bietet uns die Sprache einige Möglichkeiten, Software zu modularisieren.
+Beispielsweise haben wir die Möglichkeit, *Klassen* zu schreiben, diese *Klassen* in *packages* abzulegen, und
+*packages* über das Build-Tool in *Jars* zu verpacken.
+
+Soweit so gut..  was ist das Problem? Die Module bieten uns nicht die notwendige Kapselung.
+Wenn wir beispielsweise annehmen, dass wir ein *WAR*-File in einen Tomcat deployen, dann beinhaltet dieses War-File
+alle unsere Jar-Archive, die wir so mühsam getrennt und gepackt haben.
+Zur Laufzeit haben wir nur einen flachen Classpath, alles ist prinzipiell verfügbar und kann von jedem verwendet
+werden. Die Hürden, auf Funktionalität und Interna eines Modules zuzugreifen ist sehr gering.
+
+
+[quote, Unbekannter Autor]
+____
+Ist es möglich, etwas zu verwenden, dann wird es verwendet.
+____
+
+Verteilen wir die Komponenten von vornherein, ist die Hürde beinahe unbezwingbar, denn wenn ich eine Funktionalität
+nur über deren explizit bereitgestellte API aufrufen kann (beispielsweise einen *REST*-Endpoints einer *Spring Boot*
+Anwendung), dann sehe ich nichts von deren Interna.
+Ich sehe nur die API dieses Services. Wie das System intern funktioniert bleibt vor mir verborgen.
+Selbst wenn sich das Team dass sich für diesen Service verantworlich zeigt dazu entschliesst, den Service fortan
+nicht mehr mit Java und Spring Boot, sondern mit *Go* zu implementieren bekomme ich davon nicht das geringste mit, solange sich die API nicht ändert.
+ Versuchen Sie mal einen Service innerhalb einer Java basierten Webanwendung plötzlch mit Go zu schreiben... Ungläubige Blicke  ihrer Teamkollegen sind Ihnen gewiss. Und ich bin mehr als gespannt, wie Sie das gegenüber dem Management verargumentieren, geschweige denn dem Betrieb der das irgendwie dann deployen muss...
+
+Gehen wir also im folgenden davon aus, dass wir Requirements für ein genügend komplexes System erhalten haben, und
+wir uns dazu entscheiden, ein verteiltes System zu entwickeln.
+Im folgenden geht es darum, wie dieses verteilte System aufgebaut werden kann und zwar mit möglichst geringen
+laufenden Kosten.
+
+
+== Welche Hardware?
+=== Wo kaufen?
+=== Warum Billighardware?
+== Das System aufsetzen
+=== Docker
+=== Hypriot Image
+=== Ansible
+== Das System testen
+== Fazit
+
