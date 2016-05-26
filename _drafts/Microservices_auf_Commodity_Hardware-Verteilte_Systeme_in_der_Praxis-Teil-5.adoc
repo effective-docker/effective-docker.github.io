@@ -1,0 +1,15 @@
+---
+layout: default
+title: Microservices auf Commodity Hardware Teil 5 - Metriken
+shortTitle: Microservices und Commodity Hardware Teil 5
+documentationExpanded: false
+comments: true
+postsExpanded: true
+categories: microservices spring-boot distributed-systems
+published: false
+excerpt: excerpt
+root: ../../
+---
+
+- Microservices und Commodity Hardware - Teil 5
+
