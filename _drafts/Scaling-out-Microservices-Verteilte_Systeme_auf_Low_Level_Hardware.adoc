@@ -123,7 +123,7 @@ Ich habe mit zwei Raspberries angefangen, mittlerweilse stehen hier 8.
 
 TODO image
 
-=== Wo kaufen?
+=== Wo kaufen und Betriebskosten
 
 Die obigen Links verweisen auf Amazon, wenn ihr mir etwas guten tun wollt. Ansonsten findet ihr Raspberries und
 Zubehör natürlich in allen größeren Online-Elektro-Händlern wie http://www.reichelt.de[Reichelt], http://www.conrad.de[Conrad].
@@ -138,8 +138,85 @@ Multiplizieren wir das Ganze mit der Anzahl der Geräte, beispielsweise wenn wir
 Jahr lang unter Volllast laufen zu lassen kostet also bei einem durchschnittlichen Strompreis von 0,28 Cent / KwH sage und schreibe gut 28 Euro.
 
 == Das System aufsetzen
+
+Realistisch betrachtet, was wollen wir auf unseren Cluster Knoten eigentlich betreiben? +
+Wissen wir Stand heute einfach nicht. +
+
+Mit Sicherheit einige Services, vielleich mit verschiedenen Technologien (Spring Boot, DropWizard etc.)
+Wir werden auch einiges an Infrastruktur brauchen, Monitoring, Metriken, Messaging etc. - Stand heute nicht absehbar,
+ auf welchen Knoten welche Systeme betrieben werden.
+Wir werden mit Sicherheit die eine oder andere Datenkbank brauchen. Für den Anfang reicht mit Sicherheit
+beispielsweise eine PostgreSQL. Später brauchen wir vielleicht zusätzlich eine NoSQL Datenbank, einen Key-Value-Store
+ wir Redis und so weiter und so fort.
+
+Kurz gesagt, es ist nicht genau vorhersehbar, auf welchem Knoten welches System läuft. Sicher ist aber, wir wollen
+uns so viel Freiraum und Flexibilität erhalten wie nur irgend möglich. Der _Ops_-Anteil sollte einen möglichst
+kleinen Teil unserer tagtäglichen Arbeit ausmachen. Das erreicht man *nur* über Automatisierung.
+
+In einer idealen Welt machen wir uns gar keine Gedanken, auch welchem Knoten was läuft. In einer idealen Welt sagen
+wir dem System nur, was wir benötigen und das System kümmert sich selbst darum, die ideale Auslastung für alle
+verfügbaren Knoten herzustellen.
+
+Um den _Ops_-Anteil möglichst gering zu halten wollen wir die einzelnen Knoten austauschbar machen.
+
+[quote, Adrian Cockroft]
+____
+Treat your Server like Cattle, not like Pets
+____
+
+Sobald wir damit beginnen, auf bestimmten Knoten bestimmte Software zu installieren, beispielsweise eine Datenbank
+sind die einzelnen Knoten nicht mehr austauschbar.
+Die Knoten sind fortan fest mit einem bestimmten System verbunden, beispielsweise Node4 ist die Datenbank, und alle
+anderen Knoten _wissen_, dass die Datenbank auf _Node4_ erreichbar ist.
+
+Das muss besser gehen..
+
 === Docker
+
+Ich gehe davon aus, da Sie sich dieses Buch _gekauft_ haben beschäftigen Sie sich schon länger mit dem Thema
+_DevOps_, _Pipelines_, _Verteilte Systeme_ und den Technologien dahinter.
+Ich bin sicher, Sie haben von Docker gehört und gelesen. Man kann sich eigentlich gar nicht so tief in einer Höhle
+vergraben um nicht von _Docker_ gehört zu haben.
+
+Diese Buch setzt ein gewisses Grundverständnis zu Docker voraus. Sie müssen sich hierfür nicht gleich ein Buch zu dem
+ Thema kaufen. Es reicht die einschlägige Online-Lektüre beispielsweise auf http://www.docker.com
+
+Docker könnte uns eine Lösung für das Dilemma bieten.
+
+Wir werden in diesem Buch nicht auf die Details hinter Docker eingehen. Hierfür gibt es mit Sicherheit schon genügend
+ Literatur, Blogs, Artikel und Meinungen, so dass ich hier nicht auch noch beitragen muss.
+Wieso aber ist Docker für unseren Use-Case mehr als interessant?
+
+Docker abstrahiert von der zugrundeliegenden Hardware und arbeitet vom Prinzip her ähnlich wie eine virtuelle Maschine
+nur viel einfacher. Docker erlaubt es uns, Prozesse (wie beispielseweise Services oder Datenbanken) isoliert
+auszuführen so als wären Sie ganz allein auf einem Knoten. Zusätzlich erlaubt uns Docker, Services über Host-Grenzen
+hinweg miteinander kommunizieren zu lassen.
+
+Unsere Knoten sind mit Docker wirklich nur noch _Vieh_, denn ausser einer IP und ggf. einem Hostnamen _wissen_ wir
+nichts von diesem Knoten.
+Über eine API (die Docker-API) instruieren wir einen Knoten, dass ein bestimmter Service auf diesem laufen soll.
+Um den Service zu starten müssen wir weder manuell auf dem Knoten irgendwelche Software installieren noch müssen wir
+den Knoten speziell konfigurieren. Alles was wir brauchen ist ein _leeres_ System und einen laufenden Docker-Daemon.
+
 === Hypriot Image
+
+Docker auf dem Raspberry PI zu konfigurieren ist nicht ganz trivial. Ich bin sehr sehr dankbar, dass es Firmen gibt,
+die sich mit diesen komplexen Themen beschäftigen und uns die Lösung auf einem Silbertablett präsentieren.
+
+Die Firma http://blog.hypriot.com/[Hypriot] stellt ein fertiges SD-Karten-Image für den Raspberry PI zur Verfügung,
+auf dem bereits alles notwendige vorinstalliert ist. Einfach SD Karte mit dem Image bespielen und los gehts.
+
+Sollten Sie die Raspberries noch nicht bestellt haben machen Sie das bitte jetzt und lassen Sie den Artikel einige
+Tage ruhen bis die Lieferung kommt. Glauben Sie mir, es macht mehr Spaß mitzumachen als nur zuzuschauen.
+
+In der Zwischenzeit empfehle ich Ihnen, das jeweils aktuellste Hypriot-Image[http://blog.hypriot.com/downloads/] herunterzuladen.
+Zusätzlich laden Sie sich bitte das https://github.com/hypriot/flash[Hypriot Flash Tool], mit dem es kinderleicht
+ist, eine SD-Karte mit einem neuen Image zu flashen.
+
+*Jetzt warten wir.....*
+
+Ich hoffe, Sie halten Ihren Raspberry-PI mittlerweile in Händen und haben die notwendige Verkabelung vorgenommen.
+Höchste Zeit die entsprechenden SD Karten zu bespielen.
 === Ansible
 == Das System testen
 == Fazit
