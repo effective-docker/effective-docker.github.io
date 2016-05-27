@@ -86,10 +86,57 @@ wir uns dazu entscheiden, ein verteiltes System zu entwickeln.
 Im folgenden geht es darum, wie dieses verteilte System aufgebaut werden kann und zwar mit möglichst geringen
 laufenden Kosten.
 
+Was verursacht denn laufende Kosten?
+Nüchtern betrachtet, dieses Projekt ist ein Hobby-Projekt, dass aber 24/7 erreichbar sein soll. Also brauchen wir
+einen Server. Cloud-Anbieter wie Amazon AWS, Google Cloud Platform etc. sind zwar realtiv billig im Vergleich würde
+man die Hardware selber kaufen und hosten, dennoch sind die laufenden Kosten für ein Hobby-Projekt zu hoch.
+
+Es muss eine bessere Möglicheit geben.
 
 == Welche Hardware?
+
+Wir brauchen möglichst billige, strom- und platzsparende Hardware, die leicht skaliert werden kann.
+Wie es der Zufall will gibt es mit dem https://www.raspberrypi.org/products/raspberry-pi-2-model-b[Raspberry PI 2,
+window="_blank"] ein System, dass sich ganz hervorragend für unseren Use-Case eignet.
+
+Der Raspberry PI 2 besitzt folgende Merkmale, die für uns interessant sind.
+
+- 900MHz quad-core ARM Cortex-A7 CPU
+- 1 GB Ram
+- Ethernet Port
+
+Mit einem knappen GHz an Rechenpower, 4 Kernen und einem Gigabyte RAM lässt sich damit in der Theorie arbeiten.
+
+Mit welchem Setup können wir also starten?
+
+Natürlich brauchen wir einige http://www.amazon.de/gp/product/B01CEFWQFA/ref=as_li_qf_sp_asin_il_tl?ie=UTF8&camp=1638&creative=6742&creativeASIN=B01CEFWQFA&linkCode=as2&tag=splitshadewor-21[Raspberries, window="_blank"]
+
+Zusätzliche http://www.amazon.de/gp/product/B009E763CO/ref=as_li_qf_sp_asin_il_tl?ie=UTF8&camp=1638&creative=6742&creativeASIN=B009E763CO&linkCode=as2&tag=splitshadewor-21[SD-Karten, window="_blank"]
+
+Wir brauchen einen USB-Hub für die Stomversorgung. Beispielsweise http://www.amazon.de/gp/product/B0000B0DL7/ref=as_li_qf_sp_asin_il_tl?ie=UTF8&camp=1638&creative=6742&creativeASIN=B0000B0DL7&linkCode=as2&tag=splitshadewor-21[diesen, window="_blank"].
+
+Einen einfachen http://www.amazon.de/gp/product/B000MGBOHA/ref=as_li_qf_sp_asin_il_tl?ie=UTF8&camp=1638&creative=6742&creativeASIN=B000MGBOHA&linkCode=as2&tag=splitshadewor-21[Ethernet-Switch, window="_blank"]
+
+Einige http://www.amazon.de/gp/product/B004VL8XAI/ref=as_li_qf_sp_asin_il_tl?ie=UTF8&camp=1638&creative=6742&creativeASIN=B004VL8XAI&linkCode=as2&tag=splitshadewor-21[Ethernet-Patchkabel, window="_blank"]
+
+Ich habe mit zwei Raspberries angefangen, mittlerweilse stehen hier 8.
+
+TODO image
+
 === Wo kaufen?
-=== Warum Billighardware?
+
+Die obigen Links verweisen auf Amazon, wenn ihr mir etwas guten tun wollt. Ansonsten findet ihr Raspberries und
+Zubehör natürlich in allen größeren Online-Elektro-Händlern wie http://www.reichelt.de[Reichelt], http://www.conrad.de[Conrad].
+
+Raspberriy-Pis sind günstig in der Anschaffung - inkl. Zubehör bekommt man ein lauffähiges System mit Gehäuse schon
+für unter 50 €. Noch beeindrucker als der geringe Anschaffungspreis sind die laufenden Kosten.
+Einige Tests[https://developer-blog.net/raspberry-pi-2-stromverbrauch/] für den Raspberry sind sehr vielversprechend,
+ auch wenn ich die Ergebnisse nicht selbst nachgerechnet und kontrolliert habe.
+
+Rechnet man das zusammen (beispielsweise mit einem einfachen http://www.stromverbrauchinfo.de/stromverbrauchsrechner.php[Online-Tool, window="_blank"] kommt man auf knapp 1.5 Cent, die ein Raspberry PI unter Last am Tag kostet.
+Multiplizieren wir das Ganze mit der Anzahl der Geräte, beispielsweise wenn wir 5 Raspberries im Cluster betreiben kostet uns das 5 * 1.5 Cent = 7.5 Cent am Tag. Mal Dauerbetrieb 24 / 7 in 365 Tagen sind 2737 Cent. Den Cluster ein
+Jahr lang unter Volllast laufen zu lassen kostet also bei einem durchschnittlichen Strompreis von 0,28 Cent / KwH sage und schreibe gut 28 Euro.
+
 == Das System aufsetzen
 === Docker
 === Hypriot Image
