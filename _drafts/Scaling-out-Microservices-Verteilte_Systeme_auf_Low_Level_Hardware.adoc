@@ -217,7 +217,100 @@ ist, eine SD-Karte mit einem neuen Image zu flashen.
 
 Ich hoffe, Sie halten Ihren Raspberry-PI mittlerweile in Händen und haben die notwendige Verkabelung vorgenommen.
 Höchste Zeit die entsprechenden SD Karten zu bespielen.
-=== Ansible
-== Das System testen
+
+Sie werden sehen, es ist kinderleicht dank es Flash-Tools von Hypriot.
+
+[source]
+----
+flash --hostname pi23 hypriotos-rpi-v0.8.0.img.zip <1>
+Uncompressing hypriotos-rpi-v0.8.0.img.zip ...
+
+Is /dev/disk2 correct? y
+ 377MiB 0:00:26 [14.4MiB/s] [======================================>                                                                                                ] 29% ETA 0:01:03
+----
+<1> Der Parameter --hostname gibt dem bespielten Knoten direkt einen Hostname. Ich nenne die Knoten nach dem Muster
+pi<IP-Segment>. Also ein Knoten der die IP 192.168.178.23 erhält hat den Hostnamen pi23. Die Einstellung im Router
+legt fest, dass Knoten mit derselben MAC-Adresse immer auch die gleiche IP Adresse erhalten.
+
+TIP: Mein kompletter Cluster mit 8 Raspberries lässt mit dem _flash_-Tool in 15 Minuten bespielen.
+
+Sobald das Image eingespielt ist können Sie den Raspberry zum ersten mal starten.
+
+Wir können getrost auf das Anschliessen eines Bildschirms verzichten, *Cattles haben kein Gesicht*. Uns reicht, wenn
+wir den Raspberry über eine SSH-Konsole erreichen und selbst das sollte bald nicht mehr nötig sein.
+
+Für eine einzelne Maschine ist es problemlos möglich, alles _per Hand_ zu machen. Wir loggen uns auf der Maschine
+ein, installieren eventuell notwendige Pakete und starten dann die ersten Container.
+
+
+TIP: Wie lässt sich elegant feststellen, mit welcher IP ein Node im Netzwerk angeschlossen ist? Eine Möglichkeit
+hierfür ist nmap.
+[source]
+----
+nmap -sP 192.168.178.1/24 <1>
+Nmap scan report for pi23 (192.168.178.23)
+Host is up (0.013s latency).
+Nmap scan report for pi24 (192.168.178.24)
+Host is up (0.0087s latency).
+...
+----
+<1> pingt alle hosts und überprüft nur deren online status. Sie sollten alle angeschlossenen Raspberries in dieser
+Liste sehen.
+
+Zunächst verbinden wir uns auf einen der Knoten und überprüfen die _Docker_-Version.
+
+[source, bash]
+----
+ssh pirate@192.168.178.24 docker --version<1>
+Docker version 1.11.1, build 5604cbe <2>
+----
+<1> Zugangsdaten für den Login sind pirate / hypriot
+<2> Sehr wahrscheinlich haben Sie eine höhere Version.
+
+Höchste Zeit, den ersten Container testweise zu starten.
+
+[source, bash]
+----
+ssh pirate@192.168.178.24 docker run dilgerm/rpi-alpine-scratch echo 'hello, from a container'
+Unable to find image 'dilgerm/rpi-alpine-scratch:latest' locally
+latest: Pulling from dilgerm/rpi-alpine-scratch
+Status: Downloaded newer image for dilgerm/rpi-alpine-scratch:latest
+hello, from a container <1>
+----
+<1> Output aus dem laufenden Container
+
+Herzlichen Glückwunsch, damit haben Sie wahrscheinlich das erste Mal einen _Docker Container_ auf ihrer eigenen
+Hardware gestartet und ausgeführt.
+Es hat meiner Meinung nach schon etwas ursprüngliches - Services direkt auf echter Hardware zu starten statt
+wie bei allen Tutorials im Netz mit einer VirtualBox..
+
+Wir haben also jetzt unseren Cluster.
+
+Zum Abschluss dieses Artikels werden wir tatsächlich einen funktonierenden Service deployen der auf HTTP-Anfragen
+reagiert.
+
+[source]
+----
+ssh pirate@192.168.178.24 docker run -d -p 80:80 akkerman/rpi-nginx
+f26bbc7e1c333f676754c06f41abdd5627fe0088758f2828a0eecf10596f817d
+----
+
+Greifen wir jetzt auf den Host zu sollten wir die NGINX-Standardseite sehen.
+Damit haben wir unseren ersten Service deployed.
+
+
 == Fazit
 
+Was haben einiges geschafft. Wir haben einen arbeitenden Cluster, in meinem Fall mit 8 Knoten neu aufgesetzt und
+hochgefahren.
+Eigentlich ist das noch kein Cluster, denn die Knoten stehen aktuell alle für sich selbst.
+Wir haben aber eigenständige Rechner, die nur darauf warten, unsere Aufgaben für uns zu erledigen.
+
+Im nächsten Schritt kümmern wir uns um das wichtigste Problem - Monitoring der einzelnen Knoten. Da wir mit verteilten
+Systemen arbeiten ist es ungemein wichtig, von anfang an einen genauen Überblick über den Gesundheitsstatus unseres Systems zu erhalten.
+Was bringen uns die Vorteile von verteilten Systemen, wenn diese die Hälfte der Zeit gar nicht erreichbar sind und
+wir das nicht mal mitbekommen.
+
+Hierfür werden wir uns direkt in die Welt der Open-Source Tools begeben und uns eine Toolchain aus https://influxdb
+.com/[InfluxDB], http://grafana.org[Grafana] und https://collectd.org/[CollectD] konfigurieren. Noch bevor wir den
+ersten Microservice deployen ist das unsere höchste Prioriät.

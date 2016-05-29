@@ -1,6 +1,6 @@
 ---
 layout: default
-title: Microservices auf Commodity Hardware Teil 3 - Service Discovery
+title: Microservices auf Commodity Hardware Teil 3 - Continuous Delivery
 shortTitle: Microservices und Commodity Hardware Teil 3
 documentationExpanded: false
 comments: true
@@ -11,5 +11,10 @@ excerpt: excerpt
 root: ../../
 ---
 
-- Microservices und Commodity Hardware - Teil 3
-
+= Scaling out Microservices - Verteilte Systeme auf einfachster Hardware - Teil 2
+== Monitoring
+== Ansible
+== Toolchain
+=== InfluxDB + Grafana
+=== CollectD
+== Notifications
