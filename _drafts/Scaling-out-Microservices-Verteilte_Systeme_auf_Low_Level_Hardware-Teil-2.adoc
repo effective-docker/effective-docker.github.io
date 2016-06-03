@@ -6,15 +6,128 @@ documentationExpanded: false
 comments: true
 postsExpanded: true
 categories: microservices spring-boot distributed-systems
-published: false
+published: true
 excerpt: excerpt
 root: ../../
 ---
 
 = Scaling out Microservices - Verteilte Systeme auf einfachster Hardware - Teil 2
+
+Schon bevor wir damit beginnen, Nodes und Services aufzusetzen ist es wichtig, dass wir uns eines klar machen -
+unser Setup ist nur so gut wie unser Monitoring. Alles steht und fällt mit der Möglichkeit unseren Stack zu monitoren.
+Da wir eine _Private Cloud_ aus mehreren Knoten aufbauen werden kümmern wir uns zuerst um simples Monitoring der
+einzelnen Knoten.
+
+Wir möchten eine möglichst einheitliche Monitoring-Lösung sowohl für unsere Hardware als auch die darauf deployten
+Services.
+
+Zunächst werden wir versuchen, den Ist-Stand zu visualisieren.
+
+Die einfachste Möglichkeit um den Zustand eines Knoten in unserem Cluster zu visualisieren ist der Login per SSH und
+ausführen von _top_ oder _htop_.
+
+image::/assets/images/htop.png[htop,800]
+
+Problem hierbei - wir sehen Probleme nur, wenn wir zufälligerweise zur richtigen Zeit auf dem richtigen Knoten
+eingeloggt sind und dort _htop_ ausführen. Das ist nicht praktikabel - _und mir ehrlich gesagt zu anstrengend_...
+
+Stattdessen wäre es praktisch, einen Ort zu haben an dem alle Informationen zu allen Knoten aggregiert zur Verfügung
+stehen. Ein Dashboard, das uns auf einen Blick alle wichtigen Informationen bereitstellt.
+
 == Monitoring
-== Ansible
-== Toolchain
+
+Es gibt eine ganze Menge an frei verfügbaren und auch kostenpflichtigen Tools, um ein derartiges Dashboard möglich zu
+ machen. Ich habe Erfahrung mit einigen dieser Tools und mit dem meiner Ansicht nach besten arbeiten wir für diese
+ Projekt.
+
+Zunächst benötigen wir eine Möglichkeit, die Informationen, die wir von allen Knoten einsammeln zu speichern. Denn
+nicht nur die Momentaufnahme ist wichtig sondern auch der zeitliche Verlauf. Ein großes Problem sind beispielsweise
+Memory-Leaks. Services laufen oft eine ganze Zeit ohne Probleme bis sie nach einigen Tagen oder Wochen plötzlich
+langsam werden. Die typische Reaktion darauf ist die Services in regelmäßigen Abständen durchzustarten.
+Hat man keinen zeitlichen Verlauf und kann nicht nachvollziehen, wie sich beispielsweise der Speicherverbrauch seit
+dem letzten Restart entwickelt hat ist es äußerst schwer die echte Ursache zu finden.
+
+== InfluxDB
+
+Eines der besten frei verfügbaren Tools ist https://influxdata.com/[InfluxDB], eine Time-Series-Datenbank aktuell in
+der Version 0.13 und geschrieben in Go und daher problemlauf lauffähig auf einem Raspberry-PI - Ideal für dieses
+Projekt.
+
+Was ist eine *Time-Series-DB*?
+----
+
+In einer TimeSeriesDB speichert man vereinfacht ein Tupel "Zeitpunkt / Wert" und einer Menge an Tags.
+Um 10:00 wurden 9,87GB Speicher verbraucht. Tags - host=192.168.178.25
+Um 10:05 wurden 12,76GB Speicher verbraucht. Tags - host=192.168.178.25
+----
+
+Aus diesen Daten lassen sich Graphen und Diagramme erstellen (hier ein Beispiel aus JConsole).
+
+image::/assets/images/jconsole.png[Heap Allocation in JConsole, 800]
+
+Natürlich lassen sich derartige Informationen auch in einer herkömmlichen Datenbank speichern. Eine Time-Series-DB
+ist allerdings spezialisiert, große Datenmengen zu speichern und effizient zu verwalten. Das können bis zu Millionen
+von Tupeln pro Sekunde sein.
+
+Auch die InfluxDB kann problemlos in einem Container betrieben werden.
+
+TIP: Loggen Sie sich auf einem der Knoten ein.
+
+[source, bash]
+----
+docker run -d -p 8083:8083 -p 8086:8086 -p 25826:25826/udp dilgerm/rpi-influxdb:0.13
+----
+
+Die InfluxDB arbeitt standardmäßig auf den Ports *8083*, *8086* und *25826*. Über den Port 8086 bietet die InfluxDB
+eine HTTP API für Schreib / Lesezugriffe. Über den Port 8083 bietet die InfluxDB eine einfache Web-UI.
+
+Nachdem wir die Datenbank bereits gestartet wir die notwendigen Ports bereits exposed haben können wir direkt auf die
+ Datenbank zugreifen.
+
+TIP: In meinem Beispiel läuft die Influx auf dem Host mit der IP 192.168.178.25
+
+[source, bash]
+----
+http://192.168.178.25:8086
+----
+
+Öffnen wir diese Seite im Browser zeigt sich die einfache und funktionale Influx-UI.
+
+image::/assets/images/influx-ui.png[Influx UI, 800]
+
+Die InfluxDB bietet eine SQL-ähnliche Abfragesprache - InfluxQL um auf die Daten in der Datenbank zuzugreifen. Die UI
+bietet uns ein Eingabefeld, über das wir direkt Abfragen gegen die Datenbank absetzen können. Alternativ geht auch
+deie Abfrage über den HTTP-Endpoint.
+Standardmäßig schreibt die Influx ihre eigenen Metriken in eine Datenbank mit dem Namen __internal_.
+
+Wir können den Inhalt einer Datenbank sehr einfach über dne Http-Endpoint abrufen.
+
+[source, bash]
+----
+curl http://192.168.178.25:8086/query?q=SHOW+MEASUREMENTS&db=_internal
+----
+
+Die Query _SHOW MEASUREMENTS_ liefert für die Datenbank __internal_ folgende Werte.
+
+* httpd
+* runtime
+* shard
+* subscriber
+* write
+
+In der Serie _httpd_ beispielsweise speichert die InfluxDB Meta-Daten über die HTTP Zugriffe auf die Datenbank.
+
+[source, bash]
+----
+select * from httpd
+----
+
+image::/assets/images/influx_httpd.png[Influx HTTPD, 800]
+
+== Grafana
+
+Die Tabellenansicht der InfluxDB ist schön und gut. Richtig damit arbeiten lässt sich aber nicht.
+=== Ansible
 === InfluxDB + Grafana
 === CollectD
 == Notifications
