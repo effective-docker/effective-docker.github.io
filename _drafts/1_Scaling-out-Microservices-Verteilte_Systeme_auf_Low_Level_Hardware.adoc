@@ -1,6 +1,6 @@
 ---
 layout: default
-title: Microservices auf Commodity Hardware Teil 1 - Das System aufsetzen
+title: Microservices auf Commodity Hardware Teil 1 - Provisionierung mit Ansible
 shortTitle: Microservices und Commodity Hardware - Teil 1
 documentationExpanded: false
 comments: true

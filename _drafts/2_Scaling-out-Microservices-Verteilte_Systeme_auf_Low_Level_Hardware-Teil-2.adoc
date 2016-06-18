@@ -11,7 +11,7 @@ excerpt: excerpt
 root: ../../
 ---
 
-= Scaling out Microservices - Verteilte Systeme auf einfachster Hardware - Teil 2
+= Scaling out Microservices - Verteilte Systeme auf einfachster Hardware - Teil 2 - Metriken
 
 Schon bevor wir damit beginnen, Nodes und Services aufzusetzen ist es wichtig, dass wir uns eines klar machen -
 unser Setup ist nur so gut wie unser Monitoring. Alles steht und fällt mit der Möglichkeit unseren Stack zu monitoren.
@@ -240,8 +240,12 @@ Sobald die Größe des WAL-Log einen bestimmten Schwellwert übersteigt werden d
  abgelegt (TSM-Tree Time Structured Merge Tree).
 
 TIP: Nach 6 Stunden _Normalbetrieb_ hat die Influx im WAL-Log für einen Knoten ungefähr 6 Megabyte von Telegraf
-gespeichert. Für einen Knoten wären das also im Rohformat ungefähr 700 Megabyte. Das lässt sich noch stark
-optimieren, doch darüber reden wir später.
+gespeichert, ohne dass diese Daten bisher in TSM-Segmente geflusht worden wären. Für einen Knoten wären das also im
+Rohformat ungefähr 700 Megabyte pro Monat. Das lässt sich noch stark optimieren, doch darüber reden wir später.
+
+Dauerbetrieb in genau diesem Setup nach einer Woche (genau zum Zeitpunkt dieses Setups bin ich eine Woche in Urlaub
+gefahren und habe die beiden Raspberries einfach mal laufen lassen) übrigens 2 TSM-Dateien mit jeweils 8 und 16Mb, also
+insgesamt 24 Mb Speicherverbrauch. Influx arbeitet also extrem effizient was Datenhaltung betrifft.
 
 TODO /influxdb/usr/bin# ./influx_inspect
 TODO /influxdb/usr/bin# ./influx_stress
@@ -287,10 +291,3 @@ image::/assets/images/2_telegraf_hosts.png[Zwei Hosts, 800]
 
 TODO :/influxdb/usr/bin/influx_inspect
 TODO :/influxdb/usr/bin/influx_stress
-
-=== Ansible
-
-Natürlich könnten wir jetzt Host für Host einzeln mit Telegraf bestücken um ordentliches Monitoring zu bekommen.
-So viel Zeit haben wir aber nicht.
-
-== Notifications
