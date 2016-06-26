@@ -1,0 +1,14 @@
+---
+layout: default
+title: Microservices auf Commodity Hardware Teil 5 - Ein erster Service
+shortTitle: Microservices und Commodity Hardware Teil 5
+documentationExpanded: false
+comments: true
+postsExpanded: true
+categories: microservices spring-boot distributed-systems
+published: true
+excerpt: excerpt
+root: ../../
+---
+
+= Scaling out Microservices - Verteilte Systeme auf einfachster Hardware - Teil 5 - Ein erster Service
