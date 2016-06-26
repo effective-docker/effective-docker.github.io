@@ -359,7 +359,8 @@ Fakten, Graphen und Statistik.
 
 Wie aber bekommen wir jetzt mit, wann sich kritische Änderungen im System ergeben?
 Müssen wir ständig auf die Dashboards blicken um im geeigneten Moment reagieren zu können?
-Eher nicht... Stattdessen legen wir Schwellwerte fest, bei deren Erreichen das System uns benachrichtigen soll.
+Eher nicht... Stattdessen legen wir Schwellwerte fest, bei dere
+n Erreichen das System uns benachrichtigen soll.
 Hierfür verwenden wir ein weiteres System aus dem Influx-Universum. Mehr dazu im nächsten Artikel.
 
 
