@@ -398,7 +398,70 @@ docker create -v /tmp/kapacitor.conf:/kapacitor.conf --name kapacitor-data resin
 docker run -d --name kapacitor -p 9092:9092 --volumes-from kapacitor-data dilgerm/rpi-kapacitor:1.0.0_beta1_1 -config /kapacitor.conf
 ----
 
-== Fazit
+=== CPU Last Alerting - Batch Processing
+
+Nicht nur die Festplattenkapazität sondern natürlich auch die CPU-Auslastung eines Knotens muss überwacht werden. Was
+ bringt es, wenn wir genügend Platz auf der Platte haben, der Knoten aber so unter Last steht, dass er keine Requests
+  abarbeiten kann.
+Zur Überwachung der CPU-Auslastung ist Stream-Processing allerings kein probates Mittel, denn CPU-Auslastung hat
+immer wieder mit kurzen Lastspitzen zu kämpfen, beispielsweise bei einer JVM-Garbage-Collection.
+Bei solchen _kurzen_ und erwarteten Lastspitzen möchten wir allerdings nicht jedesmal Alerts schicken.
+Es würde also beispielsweise Sinn machen, die CPU-Auslastung gemittelt über die letzten 5 Minuten zu betrachten, nur falls dieser Wert über einen bestimmten Schwellwert schreitet kann ein Alarm ausgelöst werden.
+
+Hierfür arbeiten wir im Batch-Modus und holen uns die notwendigen Daten aus der Influx über die Query:
+
+[source, bash]
+----
+SELECT mean(usage_idle) FROM "telegraf"."default"."cpu"  where time > now() - 5m group by host
+----
+
+Also den Mittelwert der _Idleness_ über die letzten 5 Minuten pro Host.
+Wir legen die Schwellwerte für Warnungen auf 70% Idleness, was 30% Auslastung entspricht,
+die Schwellwerte für Critials bei 50, was 50% Auslastung entspricht.
+
+[source, bash]
+----
+batch
+    |query('SELECT mean(usage_idle) FROM "telegraf"."default"."cpu"')
+        .period(5m) <1>
+        .every(5m) <2>
+        .groupBy('host') <3>
+    |alert()
+        .warn(lambda: "mean" < 70) <4>
+        .crit(lambda: "mean" < 50) <5>
+         .message('high cpu load - {{ .Level}} - Idle: {{ index .Fields "mean" }}%. Host: {{index .Tags "host"}}')
+        .email()
+        .to('<your e-mail>')
+
+----
+<1> Die letzten 5 Minuten, entspricht der WHERE-Klausel _where time > now() - 5m
+<2> Die Query soll alle 5 Minuten laufen
+<3> Gruppierung pro Host
+<4> Warnungen ab 25% Gesamtauslastung
+<5> Criticals ab 50% Gesamtauslastung
+
+Wir speichern das Skript in der Datei cpu_alert.tick und definieren anschließend den neuen Task.
+
+[source, bash]
+----
+./kapacitor define cpu_alert -type batch -tick cpu_alert.tick -dbrp telegraf.default
+./kapacitor enable cpu_alert
+----
+
+Anschließend sorgen wir für etwas Auslastung. Nehmen Sie sich einen Knoten, der bisher noch gar nicht in Erscheinung
+getreten ist und starten Sie folgendes Skript in einer Konsole und lassen Sie es einfach für ein paar Minuten laufen.
+
+[source, bash]
+----
+while true; do i=0; done <1>
+----
+<1> Das Beispiel ist aus dem Getting Started - Guide für Kapacitor unter https://docs.influxdata.com/kapacitor/v0.13/introduction/getting_started.
+
+Spätestens nach 5 Minuten sollten Sie für genau diesen Knoten einen E-Mail Alarm erhalten.
+
+Damit haben wir auch die CPU-Auslastung sinnvoll unter Beobachtung.
+
+=== Fazit
 
 Mit Kapacitor haben wir ein erstaunlich einfach zu verwendendes Tool an der Hand, das es uns erlaubt, sowohl
 Stream-Processing als auch Bulk-Operationen auf den Daten einer InfluxDB durchzuführen.
