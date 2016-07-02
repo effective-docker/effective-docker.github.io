@@ -917,6 +917,13 @@ image::/assets/images/05_final_dashboard.png[Finales Dashboard, 800]
 
 Das obige Dashboard zum importieren findet sich unter http://{{site.url}}/assets/dashboards/Billy-Time-dashboard-final.json.
 
+Das Projekt zum klonen finden Sie unter https://github.com/dilgerma/billy-rpi-time.git.
+
+[source, bash]
+----
+git clone https://github.com/dilgerma/billy-rpi-time.git
+git checkout chapter-5
+----
 
 
 

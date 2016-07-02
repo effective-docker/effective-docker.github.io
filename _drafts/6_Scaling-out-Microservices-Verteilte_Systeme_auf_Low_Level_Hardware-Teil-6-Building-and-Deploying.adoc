@@ -1,0 +1,16 @@
+---
+layout: default
+title: Microservices auf Commodity Hardware Teil 6 - Building and Deploying
+shortTitle: Microservices und Commodity Hardware Teil 6
+documentationExpanded: false
+comments: true
+postsExpanded: true
+categories: microservices spring-boot distributed-systems
+published: true
+excerpt: excerpt
+root: ../../
+---
+
+= Scaling out Microservices - Verteilte Systeme auf einfachster Hardware - Teil 6 - Building and Deploying
+
+
