@@ -449,15 +449,14 @@ Wir speichern das Skript in der Datei cpu_alert.tick und definieren anschließen
 ----
 
 Anschließend sorgen wir für etwas Auslastung. Nehmen Sie sich einen Knoten, der bisher noch gar nicht in Erscheinung
-getreten ist und starten Sie folgendes Skript in einer Konsole und lassen Sie es einfach für ein paar Minuten laufen.
+getreten ist und starten Sie den folgenden Container.
 
 [source, bash]
 ----
-while true; do i=0; done <1>
+docker run dilgerm/rpi-stress --cpu 3
 ----
-<1> Das Beispiel ist aus dem Getting Started - Guide für Kapacitor unter https://docs.influxdata.com/kapacitor/v0.13/introduction/getting_started.
 
-Spätestens nach 5 Minuten sollten Sie für genau diesen Knoten einen E-Mail Alarm erhalten.
+Mit diesen Einstellungen sollten wir eine ungefähre Auslastung von 75% bekommen (Quad-Core und wir lasten 3 Knoten voll aus), also einen kritischen Zustand nach unserer Alarm-Definition. Natürlich können Spätestens nach 5 Minuten sollten Sie für genau diesen Knoten einen E-Mail Alarm erhalten.
 
 Damit haben wir auch die CPU-Auslastung sinnvoll unter Beobachtung.
 
@@ -477,6 +476,6 @@ Zusätzlich haben wir jetzt ein einfaches Alerting, das uns aktuell benachrichti
 Wir können in diesem Fall manuell gegensteuern oder beispielsweise direkt von Kapactor ein Skript starten lassen, das
  beispielsweise Docker-Images und nicht mehr gebrauchte Container weg räumt.
 
- Im nächsten Kapitel geht es endlich um den ersten _echten_ Microservice unseres Stacks. Bisher haben wir keinerlei
+Im nächsten Kapitel geht es endlich um den ersten _echten_ Microservice unseres Stacks. Bisher haben wir keinerlei
  Busines-Value generiert sondern nur Vorarbeit um sauber mit dem Stack arbeiten zu können. Das ändert sich sofort im
  nächsten Kapitel.
