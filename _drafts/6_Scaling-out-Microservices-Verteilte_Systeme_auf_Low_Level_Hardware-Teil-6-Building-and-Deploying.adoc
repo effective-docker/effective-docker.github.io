@@ -11,6 +11,101 @@ excerpt: excerpt
 root: ../../
 ---
 
-= Scaling out Microservices - Verteilte Systeme auf einfachster Hardware - Teil 6 - Building and Deploying
+= Scaling out Microservices - Verteilte Systeme auf einfachster Hardware - Teil 6 - Continuous Integration, Delivery, Deployment
 
+Im letzten Kapitel haben wir die Grundlagen und Infrastruktur für einen ersten Service auf Basis von Spring-Boot geschaffen. In diesem Kapitel geht es nun darum, diesen Service zu bauen, automatisiert zu testen und anschließend in _Produktion_ zu bringen was zunächst einmal einfach heisst, der Service im Cluster zu deployen.
+
+Wie immer gibt es hierfür unzählige Möglichkeiten und Toolchains - wir konzentrieren uns auf die gängigsten Tools und bauen daraus eine funktierende CI-Pipeline.
+
+== Pipeline as Code
+
+Zunächst brauchen wir den Build-Server der den _billy time_-Service baut.
+
+Wir arbeiten hierfür mit Jenkins in der aktuellen Verstion 2.x. Die 2.x Linie unterstützt nativ Pipeline-as-Code, also die Definition der Build-Pipeline im Source-Code.
+Warum ist das so wichtig und interessant?
+
+Eine typische Pipeline könnte für einen Service so abgebildet werden.
+
+image::/assets/images/06_pipeline.png[Pipeline Steps, 800]
+
+Jeder Schritt in der Pipeline basiert auf dem vorigen. Ein Build wird erst durch einen Commit angestossen. Der Testlauf wird erst gestartet nachdem das Artefakt korrekt gebaut wurde. In Stage oder Produktion wird nur nach erfolgreichem Test deployt.
+
+In den meisten Build-Tools ist üblich, die Schritte zum Bau eines Artefaktes in der Tool-eigenen DSL oder einfach in beispielsweise XML-Konfigurationen zu beschreiben. Man bricht also mit dem Paradigma, dass alles was zum Bau und Betrieb eines Services notwendig ist an einem Ort - nämlich dem Service-Repository - definiert ist.
+Schlägt ein Build fehl oder kann ein Service nicht deployt werden muss die Ursache unter Umständen im Build-Server und dessen Konfiguration gesucht werden.
+
+Ein beliebtes Problem ist beispielsweise, dass Artefakte aufgrund von fehlenden Berechtigungen nicht auf die Staging-Umgebung kopiert werden können.
+Eine Anpassung in der Konfiguration ist schnell gemacht, für die Rechte des Kopierens wird _temporär_ einfach der _geheime_ und _niemandem_ bekannte Admin-User verwendet.
+Einige Tage später kommt der Verantwortliche Entwickler aus dem Urlaub zurück und kocht vor Wut über diese offensichtlich dämliche Konfigurationsänderung.
+Da die Konfiguration aber nicht historisiert ist und das täglich gezogene Backup schon seit Wochen unbemerkt nicht funktioniert ist es unmöglich, die alte Konfiguration einfach wieder herzustellen.
+Es fehlt schlichtweg die Versionierung.
+
+Die Konfiguration für den Build-Server, Deployment-Skripte ist nichts anderes als Code und genauso Bestandteil unseres Produktes wie der Source-Code in der Programmiersprache des Services. Und genauso wie der Sourcecode werden alle Artefakte und Bestandteile im Source-Repository verwaltet. Vor kurzem wurde die langerwartete Version 2.x des Jenkins-Build-Servers veröffentlicht.
+
+== Jenkins 2.x
+
+Mit Jenkins ist es mittlerweile sehr einfach, auch komplexe Pipelines in der eigenen Groovy-DSL zu definieren.
+Wir werden den Jenkins wie einen Service in unserem Cluster deployen und wählen hierfür den Knoten mit der höchten Festplatten-Kapazizät.
+Hierfür müssen wir nicht raten, denn wir haben diese Information im Grafana-Dashboard zur Hand.
+
+image::/assets/images/05_disk_space_grafana.png[Grafana Disk Space]
+
+Der Knoten _Pi48_ hat mit einigem Abstand die größte Kapazität und wird deshalb der primäre Build-Server-Knoten - der *master*.
+
+Jenkins bietet kein offizielles Images für den Raspberry-PI, deswegen habe ich mir die Mühe gemacht, ein Image bereit zu stellen. Um einen Jenkins auf dem Pi48 zu starten loggen wir uns auf dem Knoten ein.
+
+[source, bash]
+----
+docker volume create --name jenkins-data <1>
+docker run -d -p 8080:8080 -p 50000:50000 -v jenkins-data:/var/jenkins_home dilgerm/rpi-jenkins:2.0.9 <2>
+----
+<1> Persistentes Volume für Jenkins erzeugen
+<2> Jenkins startet auf Port 8080 und verwendet das soeben erzeugte Volume. Den Port 50000 brauchen wir später um Slave-Agents anzusprechen.
+
+Der Jenkins ist schnell eingerichtet.
+
+image::/assets/images/06_jenkins.png[Jenkins,800]
+
+Die wichtigsten Plugins werden automatisch installiert.
+
+image::/assets/images/06_jenkins_2.png[Jenkins,800]
+
+Vergessen Sie zum Schluss nicht unter _Jenkins verwalten / Global Tool Configuration_ ein Git zu konfigurieren.
+Da der Jenkins in einem Container läuft gibt es kein nativ installiertes Git und wir begnügen uns deshalb mit einer _JGit_-Installation die dem nativen Git in kaum etwas nachsteht.
+
+image::/assets/images/06_jenkins_git_config.png[Jenkins,800]
+
+
+=== Pipeline DSL
+
+Mit Hilfe der Groovy-basierten Pipeline-DSL ist es sehr einfach, eine Pipeline _als Code_ zu definieren.
+Hierfür legen wir im Projekt des _billy time_-Services ein _Jenkinsfile_ an und definieren 5 Stages für den Build des Services.
+
+[source, bash]
+----
+node { <1>
+    stage 'build' <2>
+    stage 'integration-test' <3>
+    stage 'docker-build' <4>
+    stage 'docker-push' <5>
+    stage 'deploy' <6>
+}
+----
+<1> Ein Node definiert einen Knoten, auf dem das Projekt gebaut wird
+<2> Zunächst bauen wir das Artefakt
+<3> Ein Integration-Test stellt die Funktionalität übergreifend sicher (wie genau werden wir noch definieren)
+<4> Zum Betrieb verwenden wir Docker - es wird also eine Stage zum Bauen eines Images geben
+<5> Das Image werden wir in einer Registry bereitstellen
+<6> Hat alles funktioniert wird der Service im Cluster deployt.
+
+Sobald die Änderung im Repository gepusht ist definieren wir in der Jenkins-Oberfläche einen neuen Pipeline-Job.
+
+image::/assets/images/06_pipeline_definition_01.png[Jenkins,800]
+
+Die einzige wirklich wichtige Information, die Jenkins benötigt um die Pipeline initial anzulegen ist der Ort, wo das Pipeline-Skript abgelegt ist?
+
+image::/assets/images/06_jenkins_pipeline_definition.png[Jenkins,800]
+
+Starten wir die Pipeline legt Jenkins für uns die zuvor definierten Pipeline-Schritte und somit die Pipeline schonmal an. Natürlich passiert in keinem der Schritte bisher etwas sinnvolles, denn jeder der Schritte muss jetzt mit Leben gefüllt werden. Zunächst ist es wichtig, das Service-Artefakt zu bauen, denn das Artefakt dient als Grundlage für alle weiteren Pipeline-Schritte.
+
+image::/assets/images/06_jenkins_pipeline.png[Jenkins,800]
 
