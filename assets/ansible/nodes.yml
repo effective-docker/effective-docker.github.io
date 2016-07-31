@@ -5,3 +5,4 @@
   #serial: 1
   roles:
   - metered-node
+  - docker-host

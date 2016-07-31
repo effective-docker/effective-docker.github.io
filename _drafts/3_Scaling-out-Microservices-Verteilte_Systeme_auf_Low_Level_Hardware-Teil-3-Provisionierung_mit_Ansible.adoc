@@ -342,6 +342,64 @@ image::/assets/images/03_docker_monitoring.png[Docker Monitoring, 800]
 
 Das angepasste Dashboard ist http://{{site.url}}/assets/dashboards/systems-dashboard-simple-1.json[hier] hinterlegt.
 
+=== Docker Upgrade
+
+Über Ansible lässt sich jetzt auch problemlos die Docker-Version upgraden. Der Release-Zyklus von Docker ist teilweise schneller als der des Kernel-Images auf den jeweiligen Nodes.
+Wir wollen also die Möglichkeit, Docker unabhängig vom Kernel-Image upzudaten.
+
+Hierfür definieren wir eine neue Rolle _docker-host_, die einem Host zugeordnet wird, auf dem Docker betrieben wird.
+Sollten wir also die notwendigkeit haben, die Docker-Version zu aktualisieren (auf beispielsweise eine Preview-Version, wie beispielsweise jetzt auf die _hippe_ Version 1.12), dann muss hierfür ab jetzt nur noch die URL auf das Binary aktualisiert werden, die Version wird dann automatisch auf allen Knoten installiert.
+
+Die Schritte zum Installieren einer neuen Docker-Version legen wir wie gewohnt in der _tasks.yml_ fest.
+
+- Docker-Paket laden
+- Aktuelle Docker-Version deinstallieren
+- Neues Docker-Paket installieren
+
+[source, bash]
+----
+---
+- name: get docker
+  get_url: url={{docker_uri}} dest=/tmp/docker.deb  mode=0740 timeout=250
+- name: uninstall existing docker
+  apt: name=docker-hypriot purge=no state=absent
+- name: install docker
+  apt: deb=/tmp/docker.deb
+----
+
+Die Latest-Binaries bekommt man beispielsweise direkt vom Hypriot-Jenkins footnote:[https://jenkins.hypriot.com/job/armhf-docker/20/artifact/bundles/latest/build-deb/debian-jessie/[Hypriot-Jenkins]] serviert.
+
+Die URL auf das Binary hinterlegen wir in der _main.yml_ im Ordner _vars_.
+
+[source, bash]
+----
+docker_uri: https://jenkins.hypriot.com/...deb
+----
+
+Als letzten Schritt definieren wir im _nodes_-Playbook, dass ein _Node_ sowohl überwacht wird als auch Docker installiert haben sollte. Wir haben bisher keine anderen Anforderungen an einen Node im Cluster.
+
+[source, bash]
+----
+---
+- hosts: nodes
+  become: yes
+  #only one node at a time
+  #serial: 1
+  roles:
+  - metered-node
+  - docker-host <1>
+----
+<1> Jeder Knoten hat die Rolle _docker_host_ inne.
+
+
+=== Ansible Tags
+
+Mit dem jetzigen Setup wird jedesmal, wenn wir das Playbook starten überprüft, ob für Telegraf etwas zu tun ist und auch ob evtl. eine neue Docker-Version installiert werden muss.
+Für neue Nodes im Cluster ist das ideal, denn das Playbook kümmert sich um alles.
+Für existierende Nodes kann das gerade bei größeren Playbooks sehr zeitaufwendig werden.
+
+Ansible erlaubt es, Rollen und Konfigurationen mit Tags zu verstehen. Tags erlauben uns, beim Ausführen eines Playbooks nur bestimmte Teile auszuführen, beispielsweise eben nur die Installation einer neuen Docker-Version.
+
 === Fazit
 
 Damit haben wir ziemlich viel geschafft. Erstmals sehen wir wirklich, wie es den Hosts im Cluster geht. Wir _sehen_

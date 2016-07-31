@@ -21,14 +21,16 @@ Wie immer gibt es hierfür unzählige Möglichkeiten und Toolchains - wir konzen
 
 Zunächst brauchen wir den Build-Server der den _billy time_-Service baut.
 
-Wir arbeiten hierfür mit Jenkins in der aktuellen Verstion 2.x. Die 2.x Linie unterstützt nativ Pipeline-as-Code, also die Definition der Build-Pipeline im Source-Code.
+Wir arbeiten hierfür mit Jenkins in der aktuellen Verstion 2.x. Die 2.x Linie unterstützt nativ die Idee von _Pipeline-as-Code_, also die Definition der Build-Pipeline im Source-Code.
 Warum ist das so wichtig und interessant?
 
 Eine typische Pipeline könnte für einen Service so abgebildet werden.
 
 image::/assets/images/06_pipeline.png[Pipeline Steps, 800]
 
-Jeder Schritt in der Pipeline basiert auf dem vorigen. Ein Build wird erst durch einen Commit angestossen. Der Testlauf wird erst gestartet nachdem das Artefakt korrekt gebaut wurde. In Stage oder Produktion wird nur nach erfolgreichem Test deployt.
+Jeder Schritt in der Pipeline basiert auf dem vorherigen.
+
+Ein Build wird erst durch einen Commit angestossen. Der anschließende Testlauf wird erst gestartet, nachdem das Artefakt korrekt im ersten Pipeline-Schritt gebaut wurde. In Stage oder Produktion wird anschließend nur nach erfolgreichem Test deployt.
 
 In den meisten Build-Tools ist üblich, die Schritte zum Bau eines Artefaktes in der Tool-eigenen DSL oder einfach in beispielsweise XML-Konfigurationen zu beschreiben. Man bricht also mit dem Paradigma, dass alles was zum Bau und Betrieb eines Services notwendig ist an einem Ort - nämlich dem Service-Repository - definiert ist.
 Schlägt ein Build fehl oder kann ein Service nicht deployt werden muss die Ursache unter Umständen im Build-Server und dessen Konfiguration gesucht werden.
@@ -105,7 +107,280 @@ Die einzige wirklich wichtige Information, die Jenkins benötigt um die Pipeline
 
 image::/assets/images/06_jenkins_pipeline_definition.png[Jenkins,800]
 
-Starten wir die Pipeline legt Jenkins für uns die zuvor definierten Pipeline-Schritte und somit die Pipeline schonmal an. Natürlich passiert in keinem der Schritte bisher etwas sinnvolles, denn jeder der Schritte muss jetzt mit Leben gefüllt werden. Zunächst ist es wichtig, das Service-Artefakt zu bauen, denn das Artefakt dient als Grundlage für alle weiteren Pipeline-Schritte.
+Starten wir die Pipeline legt Jenkins für uns die zuvor definierten Pipeline-Schritte und somit die Pipeline an. Natürlich passiert in keinem der Schritte bisher etwas sinnvolles, denn jeder der Schritte muss jetzt mit Leben gefüllt werden. Zunächst ist es wichtig, das Service-Artefakt zu bauen, denn das Artefakt dient als Grundlage für alle weiteren Pipeline-Schritte.
 
 image::/assets/images/06_jenkins_pipeline.png[Jenkins,800]
+
+Das Anlegen des Pipeline Jobs ist der einzige manuelle Schritt der über die Jenkins Oberfläche erfolgen muss. Alles weiter passiert direkt im Jenkinsfile und damit im Sourcecode.
+
+=== Build Step
+
+Den Build zu starten ist trivial.
+
+[source, bash]
+----
+stage 'build'
+
+    checkout scm <1>
+    sh './gradlew build' <2>
+----
+<1> Checkout des Projekt-Repositories
+<2> Mit 'sh' werden Shell-Skripte ausgeführt und wir starten so einfach den Build wie in einer Konsole.
+
+Betrachten wir den Job in der Konsole sehen wir, dass der erste Schritt nun darin besteht, die konfigurierte Gradle-Version herunterzuladen.
+
+TIP: Auf dem Jenkins selbst ist kein Gradle installiert - jeder Service und jeder Build definiert für sich selbst, welche Gradle-Version für den Build am besten geeignet ist.
+
+image::/assets/images/06_jenkins_build.png[Jenkins,800]
+
+
+Analog könnte jetzt die Integration-Test Phase implementiert werden, die beispielsweise nur Tests starten könnte die sehr lange dauern und die Grenzen der Anwendung testen, beispielsweise die Interaktion mit der Datenbank.
+
+== Integration Test Build Step
+
+Dieser Abschnitt ist absichtlich sehr kurz gehalten, da Integration Tests nicht im Fokus dieses Kapitels liegen, trotzdem gehen wir kurz darauf ein, damit die Pipeline hinterher vollständig implementiert ist.
+
+Warum überhaupt brauchen wir eine Unterscheidung zwischen Integration- und Unit-Tests?
+Lassen wir nicht idealerweise einfach immer beide mit laufen? Muss überhaupt zwischen den beiden Typen von Tests unterschieden werden?
+
+Zunächst ist natürlich der Fokus ein anderer. Ein Unit-Test testet, wie der Name bereits suggeriert eine Einheit, ein in sich geschlossenes System.
+Ein System kann beispielsweise eine Klasse oder eine Gruppe von Klassen sein, solange klar erkennbar ist, welche Funktionalität durch einem Unit-Test
+sichergestellt werden soll.
+
+Ein Integration-Test sprengt absichtlich genau dieses Unit-Grenze und testet eine Gruppe von Systemen und deren Interaktion.
+Genau das macht Integration-Tests aber langsam, weil im Kontext eine Spring-Anwendung beispielsweise ein Spring-Context gestartet werden kann.
+Das wichtigste Ziel von Unit-Tests muss es immer sein, schnell qualifiziertes Feedback an den Entwickler zu geben. Die Betonung liegt auf _schnell_, denn in allen Projekten erlebt man, dass langsame Tests die Entwickler ausbremsen und zwar so lange, bis die Tests lokal einfach nicht mehr ausgeführt werden.
+Tests die nicht ausgeführt werden führen im besten Fall zu gelben Builds, im schlimmsten Fall zu Bugs in Produktion und dadurch enttäuschten Kunden und fehlenden Einnahmen.
+
+Daher kanne es Sinn machen, den Tradeoff einzugehen, Integration-Tests nicht _immer_ für jeden lokalen Build auszuführen, sondern vielleicht nur auf dem Integration-Server.
+Dann haben wir für die lokale Entwicklung schnelles Feedback und decken damit schon 80% der Fehlerquellen auf. Die restlichen 19% finden wir spätestens beim Build im CI-Server. Die Chance, dass ein Bug in System eingebaut wird ist dadurch also minimal.
+Willkommen in der Welt der professionellen Softwareentwicklung.
+
+Wie aber unterscheiden wir Unit- von Integration-Tests?
+Hierfür gibt es mannigfaltige Möglichkeiten, die von Naming-Conventions (alle Integration-Tests enden auf *IntTest) bis zu Annotations (@IntegrationTest), Tags (JUnit5) oder Categories (JUnit4).
+
+Für unseren Fall eignen sich Kategorien am besten, da JUnit 5 noch im Beta-Stadium ist und gerade der Support in den Entwicklungsumgebungen noch eher rudimentär.
+
+=== JUnit Categories
+
+JUnit bietet das Konzept der Kategorien mit dem Tests kategorisiert werden können. Aktuell unterstützen wir genau zwei Kategorien, Unit- und Integration-Tests. Weitere Kategorien könnten UI-Tests (Selenium, Protractor) oder Contract-Tests (Pact) sein.
+
+Kategorien in JUnit basieren auf Klasen, die als Identifier für die jeweiligen Kategorien dienen.
+Wir definieren im *package* _de.effectivetrainings.test.support_ das Interface _IntegrationTest_.
+
+[source,bash]
+----
+package de.effectivetrainings.test.support;
+
+/**
+ * Marks a Test as Integration Test.
+ */
+public interface IntegrationTest {
+}
+----
+
+Im *package* _de.effectivetrainings_ definieren wir außerdem den Test _BillyTimeApplicationTest_.
+
+[source, bash]
+----
+@RunWith(SpringJUnit4ClassRunner.class)
+@WebIntegrationTest(randomPort = true) <1>
+@SpringApplicationConfiguration(classes = BillyTimeApplication.class)
+@ActiveProfiles("local") <2>
+@Category(de.effectivetrainings.test.support.IntegrationTest.class) <3>
+public class BillyTimeApplicationTests {
+
+    @Autowired
+    private TimeTrackingResource timeTrackingResource;
+    @Value("${local.server.port}") <4>
+    private String serverPort;
+
+    @Test
+    public void startApplicationAndVerify() {
+        RestTemplate restTemplate = new TestRestTemplate();
+        final ResponseEntity<List> result = restTemplate.getForEntity(serviceUri(), List.class); <5>
+        assertFalse(result
+                .getBody()
+                .isEmpty());
+    }
+
+    private URI serviceUri() { <6>
+        return UriComponentsBuilder
+                .newInstance()
+                .scheme("http")
+                .host("localhost")
+                .port(serverPort)
+                .path(TimeTrackingResource.PROJECTS_URI)
+                .build()
+                .toUri();
+    }
+}
+----
+<1> Mit der Annotation @WebIntegrationTest initialisieren wir den Test so, dass ein echter Container gestartet wird, gegen den wir testen können. footnote:[http://docs.spring.io/spring/docs/current/spring-framework-reference/html/integration-testing.html[Spring Boot Integration Test Support]]
+<2> Das Profil "local" für die lokale Entwicklung / Testing
+<3> Kategorisierung des Tests
+<4> Port der gestarteten Embedded-Jetty Instanz.
+<5> HTTP-Request gegen die Anwendung
+<6> Service-URI auf die TimeTrackingResource
+
+Spring bietet einen ausgezeichneten Support für Integration-Tests mit Embedded-Containern. Das weiß jeder umso mehr zu schätzen, der bereits in Projekten gearbeitet hat, in denen das alles von Hand zu machen war.
+Allein indem der Test mit @WebIntegrationTest annotiert wird kümmert sich Spring um das ganze Scaffolding und fährt die Anwendung in einem Embedded-Jetty Container hoch (Tomcat geht natürlich auch).
+
+Wir annotieren den Test mit _@Category(de.effectivetrainings.test.support.IntegrationTest.class)_. Nur Integration-Tests werden annotiert, alle anderen Tests gelten als normale Unit Tests.
+
+TIP: Ich erlebe es immer wieder in Projekten, dass das falsch gemacht wird. Integration-Tests werden als _Integration-Test_ annotiert oder markiert, Unit Tests als Unit-Tests. Oft wird dann übersehen, dass nicht annotierte Tests gar nicht laufen, was dazu verleitet sich in falscher Sicherheit zu wiegen, weil das Feedback ausbleibt.
+
+Zuletzt sorgen wir in der _build.gradle_ dafür, dass Gradle auch von der Kategorisierung weiß und Integration Tests beim normalen _Build_ ignoriert.
+
+[source, bash]
+----
+test {
+  useJUnit {
+    excludeCategories 'de.effectivetrainings.test.support.IntegrationTest'
+  }
+}
+----
+
+Wir definieren zusätzlich den Task Integration-Test, der nichts anderes tut als Integration-Tests auszuführen.
+
+[source, bash]
+----
+task integrationTest(type: Test) {
+    useJUnit {
+        includeCategories 'de.effectivetrainings.test.support.IntegrationTest'
+    }
+}
+----
+
+Jetzt kann der normale Build ganz einfach über _gradle build_ gestartet werden. Die Integration-Tests sind ausführbar über _gradle integrationTest_.
+
+Nach dieser Vorarbeit ist es ganz einfach, die Integration-Test-Phase im _Jenkinsfile_ zu definieren.
+
+[source, bash]
+----
+node {
+    stage 'build'
+
+    checkout scm
+    sh './gradlew build'
+
+    stage 'integration-test'
+
+    sh 'gradlew integrationTest' <1>
+
+    stage 'docker-build'
+    stage 'docker-push'
+    stage 'deploy'
+}
+----
+<1> Integration Tests Phase
+
+== Docker Build Step
+
+Docker ist ein fundamentaler Baustein der CI-Pipeline. Artefakte werden nicht mehr als War- oder Jar- oder EAR deployt sondern als Container.
+Jeder Build erzeugt ein Docker-Image und damit einen potentiellen Release-Kandidaten. Das Image kann (muss aber nicht) jetzt auf die verschiedenen Staging-Umgebungen deployt und getestet werden.
+
+Genauso gut kann das Image aber lokal bei einem Entwickler gestartet werden um damit auffälliges Verhalten in Produktion nachzustellen.
+Der Vorteil - die Konfiguration der Umgebung zumindest für die Anwendung selbst entspricht genau der Konfiguration wie in Produktion da alles was nötig ist um die Anwendung zu betreiben bereits in das Image gebacken wurde.
+
+Es gibt grundsätzlich immer zwei Möglichkeiten, diese Pipeline-Phase zu implementieren.
+
+Entweder man verlässt sich auf eines der unzähligen https://plugins.gradle.org/search?term=docker[Docker-Gradle-Plugins] und integriert Docker in den Build-Prozess oder man definiert alles für den Docker-Build notwendige in einem eigenen Dockerfile und behält so die volle Kontrolle.
+Da wir bis jetzt keinerlei spezielle Anforderungen an den Docker-Build haben und das einzige Ziel darin besteht, ein lauffähiges Docker-Artefakt zu bauen integrieren wir den Docker-Build in den Build-Prozess und sparen uns somit die Arbeit, den Build manuell aufzusetzen.
+
+Das wahrscheinlich am häufigsten verwendete Plugin ist das von https://github.com/bmuschko/gradle-docker-plugin[Benjamin Muschko].
+
+=== Gradle Integration
+
+Die komplette Konfiguration für den Docker-Build ist überschaubar. Zunächst definieren wir den Task, der das Dockerfile aus der Projektkonfiguration generiert.
+
+[source, bash]
+----
+task createDockerfile(type: Dockerfile) {
+    destFile = project.file('build/docker/Dockerfile') <1>
+    from 'dilgerm/rpi-app-base' <2>
+    maintainer 'Martin Dilger <martin@effectivetrainings.de>'
+    addFile "${serviceName}.jar", "/app/${serviceName}.jar" <3>
+    entryPoint "java","-Djava.security.egd=file:/dev/./urandom","-jar","/app/${serviceName}.jar" <4>
+}
+----
+<1> Dockerfile im Build-Verzeichnis 'build/docker'
+<2> Ein mögliches Base-Image für ein Deployment auf der ARM-Plattform
+<3> Wir fügen nichts weiter als das soeben gebaute Jar-File in das Image.
+<4> Start der Anwendung ist nur der Befehl _java -jar ..._
+
+Für den Build eines Docker-Images wird ein _Dockerfile_ benötigt. Wir haben uns entschieden, das File nicht selbst zu schreiben sondern es durch Gradle generieren zu lassen.
+Der Docker-Build wird nicht im Root-Verzeichnis ausgeführt sondern im Unterverzeichnis _build/docker_. Beim Docker-Build werden alle Dateien und Verzeichnisse im Build-Verzeichnis als Build-Context an den Docker-Daemon gesendet, daher begrenzen wir den Context und die zu übertragenden Daten auf ein Minimum und kopieren alle zum Build notwendigen Dateien explizit in das Build-Verzeichnis.
+
+Wir definieren zusätzlich den Task _docker_, der das Image aus dem zuvor generierten Dockerfile baut.
+Ein schönes Beispiel für diese Art der Konfiguration findet sich beispielsweise http://container-solutions.com/how-to-build-docker-images-with-gradle/[hier].
+
+[source, bash]
+----
+task docker(type: DockerBuildImage) {
+    dependsOn createDockerfile
+    dependsOn copyJar
+    if (System.env.DOCKER_HOST) {
+        url = "$System.env.DOCKER_HOST".replace("tcp", "https")
+        if (System.env.DOCKER_CERT_PATH) {
+            certPath = new File(System.env.DOCKER_CERT_PATH)
+
+        }
+    } else {
+        url = 'unix:///var/run/docker.sock'
+    }
+    inputDir = createDockerfile.destFile.parentFile
+    tag = "dilgerm/$serviceName:$project.version" <1>
+}
+----
+<1> Das Image wird gebaut und mit dilgerm/billy-time:0.0.1-SNAPSHOT getaggt. Das ändert sich später noch.
+
+Die komplette https://github.com/dilgerma/billy-rpi-time/blob/74db2202b20ac6b50c6f94e384b8e4cd48604709/build.gradle[build.gradle] findet sich auf Github.
+
+Nochmal zur Veranschaulichung die komplette Konfiguration für den Docker-Build.
+
+[source, bash]
+----
+docker {
+    url = 'http://192.168.99.100:2376' <1>
+}
+
+task copyJar(type: Copy) {
+    dependsOn 'jar'
+    from "build/libs/${serviceName}-${project.version}.jar"
+    into 'build/docker/'
+    rename { String fileName ->
+        fileName.replace("-${project.version}", "")
+    }
+}
+
+task createDockerfile(type: Dockerfile) {
+    destFile = project.file('build/docker/Dockerfile')
+    from 'dilgerm/rpi-app-base'
+    maintainer 'Martin Dilger <martin@effectivetrainings.de>'
+    addFile "${serviceName}.jar", "/app/application.jar"
+    entryPoint "java", "-Djava.security.egd=file:/dev/./urandom", "-jar", "/app/application.jar"
+}
+
+task docker(type: DockerBuildImage) {
+    dependsOn createDockerfile
+    dependsOn copyJar
+    if (System.env.DOCKER_HOST) {
+        url = "$System.env.DOCKER_HOST".replace("tcp", "https")
+        if (System.env.DOCKER_CERT_PATH) {
+            certPath = new File(System.env.DOCKER_CERT_PATH)
+
+        }
+    } else {
+        url = 'unix:///var/run/docker.sock'
+    }
+    inputDir = createDockerfile.destFile.parentFile
+    tag = "dilgerm/$serviceName:$project.version"
+}
+----
+<1> Umgebuungsspezifisch - hier beispielsweise die IP meiner Docker-Instanz auf MacOS
+
+Nichts in dieser Konfiguration ist Service-spezifisch. Die Konfiguration ist generisch wiederverwendbar.
+
+== Docker Push Step
 

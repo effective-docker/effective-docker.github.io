@@ -5,3 +5,6 @@
 *.bundle
 Gemfile.lock
 .sass-cache
+.DS_Store
+*.swp
+.idea
