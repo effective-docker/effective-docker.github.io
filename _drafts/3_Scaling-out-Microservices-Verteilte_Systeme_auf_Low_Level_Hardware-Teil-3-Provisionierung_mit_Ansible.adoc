@@ -400,6 +400,37 @@ Für existierende Nodes kann das gerade bei größeren Playbooks sehr zeitaufwen
 
 Ansible erlaubt es, Rollen und Konfigurationen mit Tags zu verstehen. Tags erlauben uns, beim Ausführen eines Playbooks nur bestimmte Teile auszuführen, beispielsweise eben nur die Installation einer neuen Docker-Version.
 
+Tags sind sehr flexibel einsetzbar, einige Ideen finden sich auf der http://docs.ansible.com/ansible/playbooks_tags.html[Ansible-Übersichtsseite].
+Für unser jetziges Setup ist es ideal, Rollen mit Tags zu verknüpfen.
+
+[source, bash]
+----
+---
+- hosts: nodes
+  become: yes
+  #only one node at a time
+  #serial: 1
+  roles:
+  - {role: metered-node, tags: ['metered']}
+  - {role: docker-host, tags: ['docker']}
+----
+
+Starten wir ein Playbook ohne weitere Parameter ist das Verhalten wir zuvor - es werden einfach alle Rollen ausgewertet. Wir haben aber auch die Möglichkeit, nur Rollten mit bestimmten Tags auszuführen.
+
+Wir starten das Playbook und geben explizit die Tags an, die ausgewertet werden sollen.
+
+[source, bash]
+----
+ansible-playbook -i hosts nodes.yml -u pirate --tags "docker"
+----
+
+Alternativ kann auch mit einem Blacklisting gearbeitet werden, indem wir bestimmte Tags von der Ausführung ausschliessen.
+
+[source, bash]
+----
+ansible-playbook -i hosts nodes.yml -u pirate --skip-tags "docker"
+----
+
 === Fazit
 
 Damit haben wir ziemlich viel geschafft. Erstmals sehen wir wirklich, wie es den Hosts im Cluster geht. Wir _sehen_

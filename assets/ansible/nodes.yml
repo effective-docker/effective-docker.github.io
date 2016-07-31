@@ -4,5 +4,5 @@
   #only one node at a time
   #serial: 1
   roles:
-  - metered-node
-  - docker-host
+  - {role: metered-node, tags: ['metered']}
+  - {role: docker-host, tags: ['docker']}
