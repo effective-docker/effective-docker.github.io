@@ -296,24 +296,27 @@ Die komplette Konfiguration für den Docker-Build ist überschaubar. Zunächst d
 
 [source, bash]
 ----
-task createDockerfile(type: Dockerfile) {
-    destFile = project.file('build/docker/Dockerfile') <1>
-    from 'dilgerm/rpi-app-base' <2>
+task prepareDockerBuild(type: Dockerfile) {
+    dependsOn copyJar <1>
+    destFile = project.file('build/docker/Dockerfile') <2>
+    from 'dilgerm/rpi-app-base' <3>
     maintainer 'Martin Dilger <martin@effectivetrainings.de>'
-    addFile "${serviceName}.jar", "/app/${serviceName}.jar" <3>
-    entryPoint "java","-Djava.security.egd=file:/dev/./urandom","-jar","/app/${serviceName}.jar" <4>
+    addFile "${serviceName}.jar", "/app/${serviceName}.jar" <4>
+    entryPoint "java","-Djava.security.egd=file:/dev/./urandom","-jar","/app/${serviceName}.jar" <5>
 }
 ----
-<1> Dockerfile im Build-Verzeichnis 'build/docker'
-<2> Ein mögliches Base-Image für ein Deployment auf der ARM-Plattform
-<3> Wir fügen nichts weiter als das soeben gebaute Jar-File in das Image.
-<4> Start der Anwendung ist nur der Befehl _java -jar ..._
+<1> Prepare beinhaltet auch, die Artefakte zu kopieren
+<2> Dockerfile im Build-Verzeichnis 'build/docker'
+<3> Ein mögliches Base-Image für ein Deployment auf der ARM-Plattform
+<4> Wir fügen nichts weiter als das soeben gebaute Jar-File in das Image.
+<5> Start der Anwendung ist nur der Befehl _java -jar ..._
 
 Für den Build eines Docker-Images wird ein _Dockerfile_ benötigt. Wir haben uns entschieden, das File nicht selbst zu schreiben sondern es durch Gradle generieren zu lassen.
 Der Docker-Build wird nicht im Root-Verzeichnis ausgeführt sondern im Unterverzeichnis _build/docker_. Beim Docker-Build werden alle Dateien und Verzeichnisse im Build-Verzeichnis als Build-Context an den Docker-Daemon gesendet, daher begrenzen wir den Context und die zu übertragenden Daten auf ein Minimum und kopieren alle zum Build notwendigen Dateien explizit in das Build-Verzeichnis.
 
-Wir definieren zusätzlich den Task _docker_, der das Image aus dem zuvor generierten Dockerfile baut.
-Ein schönes Beispiel für diese Art der Konfiguration findet sich beispielsweise http://container-solutions.com/how-to-build-docker-images-with-gradle/[hier].
+Üblicherweise wäre es sinnvoll, auch den kompletten Docker-Build Schritt im Build-File Umgebungsunabhängig zu definieren. Ein schönes Beispiel für diese Art der Konfiguration findet sich beispielsweise http://container-solutions.com/how-to-build-docker-images-with-gradle/[hier].
+
+Die Konfiguration für den Docker-Aufruf aus Gradle wäre in diesem Task definiert.
 
 [source, bash]
 ----
@@ -335,52 +338,25 @@ task docker(type: DockerBuildImage) {
 ----
 <1> Das Image wird gebaut und mit dilgerm/billy-time:0.0.1-SNAPSHOT getaggt. Das ändert sich später noch.
 
-Die komplette https://github.com/dilgerma/billy-rpi-time/blob/74db2202b20ac6b50c6f94e384b8e4cd48604709/build.gradle[build.gradle] findet sich auf Github.
+Leider ist vom Gradle Docker Plugin verwendete API (Docker-Java) alles andere als stabil und funktioniert derzeit überhaupt nicht, da der Zugriff auf Unix-Sockets aus Java nicht möglich zu sein scheint.
 
-Nochmal zur Veranschaulichung die komplette Konfiguration für den Docker-Build.
+CAUTION: Eines von vielen Problemen geht beispielsweise aus diesem https://github.com/docker-java/docker-java/issues/537[Bug] hervor.
+
+Wir verzichten also auf den letzten Schritt des Docker-Aufrufs aus Gradle und gehen die letzten Meter _im Jenkinsfile_.
 
 [source, bash]
 ----
-docker {
-    url = 'http://192.168.99.100:2376' <1>
-}
-
-task copyJar(type: Copy) {
-    dependsOn 'jar'
-    from "build/libs/${serviceName}-${project.version}.jar"
-    into 'build/docker/'
-    rename { String fileName ->
-        fileName.replace("-${project.version}", "")
-    }
-}
-
-task createDockerfile(type: Dockerfile) {
-    destFile = project.file('build/docker/Dockerfile')
-    from 'dilgerm/rpi-app-base'
-    maintainer 'Martin Dilger <martin@effectivetrainings.de>'
-    addFile "${serviceName}.jar", "/app/application.jar"
-    entryPoint "java", "-Djava.security.egd=file:/dev/./urandom", "-jar", "/app/application.jar"
-}
-
-task docker(type: DockerBuildImage) {
-    dependsOn createDockerfile
-    dependsOn copyJar
-    if (System.env.DOCKER_HOST) {
-        url = "$System.env.DOCKER_HOST".replace("tcp", "https")
-        if (System.env.DOCKER_CERT_PATH) {
-            certPath = new File(System.env.DOCKER_CERT_PATH)
-
-        }
-    } else {
-        url = 'unix:///var/run/docker.sock'
-    }
-    inputDir = createDockerfile.destFile.parentFile
-    tag = "dilgerm/$serviceName:$project.version"
-}
+stage 'docker-build'
+    //tasks
+    sh './gradlew prepareDockerBuild'
+    sh 'docker build -t dilgerm/billy-time:0.0.1 build/docker' <1>
 ----
-<1> Umgebuungsspezifisch - hier beispielsweise die IP meiner Docker-Instanz auf MacOS
-
-Nichts in dieser Konfiguration ist Service-spezifisch. Die Konfiguration ist generisch wiederverwendbar.
+<1> Docker-Build in der Konsole, _build/docker_ ist das Verzeichnis, indem Gradle das Dockerfile angelegt hat.
 
 == Docker Push Step
+
+Da wir den Service auf beliebigen Knoten im Cluster verteilen und provisionieren möchten müssen wir das gerade gebaute Docker-Image auch verteilen können. Eine Möglichkeit hierzu ist einfach die Dockerregistry im _Dockerhub_. Wir bauen also das Image und pushen es anschließend zu Dockerhub.
+
+CAUTION: Für eine produktive Anwendung würden Sie wahrscheinlich eher eine private Dockerregistry betreiben.
+
 
