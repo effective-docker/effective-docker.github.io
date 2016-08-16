@@ -19,6 +19,14 @@
   margin-top: 15px;
 }
 
+.admonitionblock {
+  margin: 20px 0px 10px 0px;
+}
+
+.admonitionblock > > .title {
+  margin-right: 15px;
+}
+
 /*!
  * Bootstrap v3.3.6 (http://getbootstrap.com)
  * Copyright 2011-2015 Twitter, Inc.
