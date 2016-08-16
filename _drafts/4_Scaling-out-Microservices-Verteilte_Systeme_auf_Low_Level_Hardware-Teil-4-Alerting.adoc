@@ -29,6 +29,13 @@ denn unter https://hub.docker.com/r/dilgerm/rpi-kapacitor liegen für Raspberry 
 Um Kapactor zu starten loggen wir uns am einfachsten wieder auf einem Rasperry-PI ein (das muss nicht zwingend
 derselbe sein, auf dem die InfluxDB läuft).
 
+Kapactor speichert alle Daten standardmäßig in _/var/lib/kapacitor/_. Damit wir nicht alle Daten verlieren, wenn wir den Container neu starten bietet es sich an, hierfür ein Data-Volume zu erzeugen.
+
+[source, bash]
+----
+docker volume create --name kapacitor-data
+----
+
 [source, bash]
 ----
 docker run -d --name kapacitor
@@ -36,11 +43,13 @@ docker run -d --name kapacitor
     -e KAPACITOR_HOSTNAME=192.168.178.25 <2>
     -e KAPACITOR_REPORTING_ENABLED=false
     -e KAPACITOR_INFLUXDB_0_URLS_0=http://192.168.178.25:8086 <3>
-   dilgerm/rpi-kapacitor:1.0.0_beta1_1
+    -v kapacitor-data:/var/lib/kapacitor/ <4>
+   dilgerm/rpi-kapacitor:1.0.0_beta4_1
 ----
 <1> Wir lassen Kapacitor vorerst auf dem Standardport 9092 laufen.
 <2> Kapacitor muss seinen eigenen Hostnamen kennen. Der hier konfigurierte Hostname muss für InfluxDB erreichbar sein.
 <3> URLs auf InfluxDB Instanzen, mit denen Kapacitor arbeiten soll.
+<4> Mounten des Daten-Volumes - Kapacitor speichert alle Daten anschließend in das Volume.
 
 Sofort beim Start registriert Kapacitor sogenannte _Subscriptions_ auf alle Influx-Datenbanken. Soll das auf
 bestimmte Datenbanken eingeschränkt werden kann das später konfigurativ gelöst werden.
@@ -352,8 +361,9 @@ Starten Sie Kapacitor mit dieser Konfiguration.
 docker run -d
     --name kapacitor
     -p 9092:9092
+    -v kapacitor-data:/var/lib/kapacitor/
     -v kapacitor.conf:/kapacitor.conf <1>
-    dilgerm/rpi-kapacitor:1.0.0_beta1_1
+    dilgerm/rpi-kapacitor:1.0.0_beta4_1
     -config  /kapacitor.conf <2>
 ----
 <1> Mounten Sie die Konfiguration in den Container
@@ -395,7 +405,7 @@ Sauberer wäre es sogar, die Konfiguration in einem  _Data-Container_ abzulegen 
 docker create -v /tmp/kapacitor.conf:/kapacitor.conf --name kapacitor-data resin/rpi-raspbian:jessie /bin/true
 
 #funktioniert selbst noch, nachdem das /tmp-Verzeichnis geleert wurde:)
-docker run -d --name kapacitor -p 9092:9092 --volumes-from kapacitor-data dilgerm/rpi-kapacitor:1.0.0_beta1_1 -config /kapacitor.conf
+docker run -d --name kapacitor -p 9092:9092 --volumes-from kapacitor-data dilgerm/rpi-kapacitor:1.0.0_beta4_1 -config /kapacitor.conf
 ----
 
 === CPU Last Alerting - Batch Processing

@@ -184,9 +184,8 @@ Im *package* _de.effectivetrainings_ definieren wir außerdem den Test _BillyTim
 [source, bash]
 ----
 @RunWith(SpringJUnit4ClassRunner.class)
-@WebIntegrationTest(randomPort = true) <1>
-@SpringApplicationConfiguration(classes = BillyTimeApplication.class)
-@ActiveProfiles("local") <2>
+@SpringBootTest(classes = BillyTimeApplication.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT) <1>
+@ActiveProfiles("unit-test-env") <2>
 @Category(de.effectivetrainings.test.support.IntegrationTest.class) <3>
 public class BillyTimeApplicationTests {
 
@@ -216,15 +215,15 @@ public class BillyTimeApplicationTests {
     }
 }
 ----
-<1> Mit der Annotation @WebIntegrationTest initialisieren wir den Test so, dass ein echter Container gestartet wird, gegen den wir testen können. footnote:[http://docs.spring.io/spring/docs/current/spring-framework-reference/html/integration-testing.html[Spring Boot Integration Test Support]]
-<2> Das Profil "local" für die lokale Entwicklung / Testing
+<1> Mit der Annotation @SpringBootTest initialisieren wir den Test so, dass ein echter Container gestartet wird, gegen den wir testen können. footnote:[http://docs.spring.io/spring/docs/current/spring-framework-reference/html/integration-testing.html[Spring Boot Integration Test Support]]
+<2> Das Profil "unit-test-env" für Integration Testing. Das Profil hat aktuell keine Bedeutung.
 <3> Kategorisierung des Tests
 <4> Port der gestarteten Embedded-Jetty Instanz.
 <5> HTTP-Request gegen die Anwendung
 <6> Service-URI auf die TimeTrackingResource
 
 Spring bietet einen ausgezeichneten Support für Integration-Tests mit Embedded-Containern. Das weiß jeder umso mehr zu schätzen, der bereits in Projekten gearbeitet hat, in denen das alles von Hand zu machen war.
-Allein indem der Test mit @WebIntegrationTest annotiert wird kümmert sich Spring um das ganze Scaffolding und fährt die Anwendung in einem Embedded-Jetty Container hoch (Tomcat geht natürlich auch).
+Allein indem der Test mit @SpringBootTest annotiert wird kümmert sich Spring um das ganze Scaffolding und fährt die Anwendung in einem Embedded-Jetty Container hoch (Tomcat geht natürlich auch).
 
 Wir annotieren den Test mit _@Category(de.effectivetrainings.test.support.IntegrationTest.class)_. Nur Integration-Tests werden annotiert, alle anderen Tests gelten als normale Unit Tests.
 
@@ -286,7 +285,7 @@ Der Vorteil - die Konfiguration der Umgebung zumindest für die Anwendung selbst
 Es gibt grundsätzlich immer zwei Möglichkeiten, diese Pipeline-Phase zu implementieren.
 
 Entweder man verlässt sich auf eines der unzähligen https://plugins.gradle.org/search?term=docker[Docker-Gradle-Plugins] und integriert Docker in den Build-Prozess oder man definiert alles für den Docker-Build notwendige in einem eigenen Dockerfile und behält so die volle Kontrolle.
-Da wir bis jetzt keinerlei spezielle Anforderungen an den Docker-Build haben und das einzige Ziel darin besteht, ein lauffähiges Docker-Artefakt zu bauen integrieren wir den Docker-Build in den Build-Prozess und sparen uns somit die Arbeit, den Build manuell aufzusetzen.
+Wir verwenden hierfür einen hybriden Ansatz - das Dockerfile wird über Gradle definiert. Alles weitere überlassen wir dann dem CI-Server.
 
 Das wahrscheinlich am häufigsten verwendete Plugin ist das von https://github.com/bmuschko/gradle-docker-plugin[Benjamin Muschko].
 
@@ -314,7 +313,7 @@ task prepareDockerBuild(type: Dockerfile) {
 Für den Build eines Docker-Images wird ein _Dockerfile_ benötigt. Wir haben uns entschieden, das File nicht selbst zu schreiben sondern es durch Gradle generieren zu lassen.
 Der Docker-Build wird nicht im Root-Verzeichnis ausgeführt sondern im Unterverzeichnis _build/docker_. Beim Docker-Build werden alle Dateien und Verzeichnisse im Build-Verzeichnis als Build-Context an den Docker-Daemon gesendet, daher begrenzen wir den Context und die zu übertragenden Daten auf ein Minimum und kopieren alle zum Build notwendigen Dateien explizit in das Build-Verzeichnis.
 
-Üblicherweise wäre es sinnvoll, auch den kompletten Docker-Build Schritt im Build-File Umgebungsunabhängig zu definieren. Ein schönes Beispiel für diese Art der Konfiguration findet sich beispielsweise http://container-solutions.com/how-to-build-docker-images-with-gradle/[hier].
+Üblicherweise wäre es sinnvoll, auch den kompletten Docker-Build Schritt im Build-File umgebungsunabhängig zu definieren. Ein schönes Beispiel für diese Art der Konfiguration findet sich beispielsweise http://container-solutions.com/how-to-build-docker-images-with-gradle/[hier].
 
 Die Konfiguration für den Docker-Aufruf aus Gradle wäre in diesem Task definiert.
 
@@ -342,21 +341,162 @@ Leider ist vom Gradle Docker Plugin verwendete API (Docker-Java) alles andere al
 
 CAUTION: Eines von vielen Problemen geht beispielsweise aus diesem https://github.com/docker-java/docker-java/issues/537[Bug] hervor.
 
-Wir verzichten also auf den letzten Schritt des Docker-Aufrufs aus Gradle und gehen die letzten Meter _im Jenkinsfile_.
+Wir verzichten also auf den letzten Schritt des Docker-Aufrufs aus Gradle und gehen die letzten Meter _im Jenkinsfile_ über das https://go.cloudbees.com/docs/cloudbees-documentation/cje-user-guide/chapter-docker-workflow.html[Docker Pipeline Plugin].
 
 [source, bash]
 ----
 stage 'docker-build'
     //tasks
     sh './gradlew prepareDockerBuild'
-    sh 'docker build -t dilgerm/billy-time:0.0.1 build/docker' <1>
+    def img = docker.build("dilgerm/billy-time:${env.BUILD_ID}", 'build/docker'); <1>
 ----
-<1> Docker-Build in der Konsole, _build/docker_ ist das Verzeichnis, indem Gradle das Dockerfile angelegt hat.
+<1> Docker-Build über Docker-Pipeline, _build/docker_ ist das Verzeichnis, in dem Gradle das Dockerfile abgelegt hat.
+
+Das Docker Pipeline Plugin ist eine einfache und komfortable Möglichkeit, Docker aus einem Pipeline-Script heraus zu steuern.
+Ein wirklich schönes Beispiel findet sich beispielsweise in diesem https://github.com/jenkinsci/docker-workflow-plugin/blob/master/demo/repo/flow.groovy[Github-Skript].
 
 == Docker Push Step
 
-Da wir den Service auf beliebigen Knoten im Cluster verteilen und provisionieren möchten müssen wir das gerade gebaute Docker-Image auch verteilen können. Eine Möglichkeit hierzu ist einfach die Dockerregistry im _Dockerhub_. Wir bauen also das Image und pushen es anschließend zu Dockerhub.
+Da wir den Service auf beliebigen Knoten im Cluster verteilen und provisionieren möchten müssen wir das gerade gebaute Docker-Image auch verteilen können. Eine Möglichkeit hierzu ist einfach die Dockerregistry im _Dockerhub_.
 
-CAUTION: Für eine produktive Anwendung würden Sie wahrscheinlich eher eine private Dockerregistry betreiben.
+TIP: Möchten Sie das auch machen legen Sie sich bitte einen eigenen Dockerhub-Account an.
 
+Wir bauen also das Image und pushen es anschließend zu Dockerhub.
+Damit der Push aus dem Jenkins-Knoten funktioniert müssen wir die Dockerhub-Credentials irgendwo hinterlegen.
+Die Credentials jedoch im Jenkinsfile und somit in der Versionskontrolle zu hinterlegen wäre naiv, besser ist die Konfiguration direkt im Jenkins.
 
+=== Jenkins Credentials Plugin
+
+Auch für die sichere Verwaltung der Credentials bietet Jenkins eine Lösung mit dem https://wiki.jenkins-ci.org/display/JENKINS/Credentials+Plugin[Credentials Plugin]. Das Credentials-Plugin befreit uns von der Versuchung, Credentials im Jenkinsfile und damit für alle sichtbar zu hinterlegen. Stattdessen werden die Credentials zentral im Jenkins verwaltet und nur noch über IDs referenziert. Die einzelnen Plugins bekommen die Credentials also gar nicht zu sehen, sondern wissen nur, _welche_ Credentials zu verwenden sind.
+
+Viele Plugins bieten die Möglichkeit, mit Credential-Ids statt echten Credentials zu arbeiten.
+
+Das Credentials Plugin verwaltet Credentials hierarchisch unterteilt in _Stores_ und _Domänen_.
+Als Standardspeicher-Art für Credentials verwendet Jenkins den System-Store. Die Standard-Domäne ist _global_, verwaltet also Credentials
+die überall und in allen Jobs verwendet werden können.
+
+Um neue Credentials für Dockerhub zu hinterlegen öffnen Sie zunächst die Zugangsdaten von der Startseite aus.
+
+image::/assets/images/06_credentials_01.png[Credentials, 350]
+
+Anschließend konfigurieren wir die Credentials für die _global_-Domäne.
+
+image::/assets/images/06_credentials_02.png[Credentials, 800]
+
+Anschließend können wir ganz einfach neue Credentials hinterlegen, für unseren Fall eignet typischerweise einfach _Benutzername & Passwort_.
+
+image::/assets/images/06_credentials_03.png[Credentials, 800]
+
+TODO Credentials Binding Plugin
+
+Sobald die Credentials hinterlegt sind ist der Schritt für den Push in die Registry ganz einfach.
+
+[source, bash]
+----
+stage 'push'
+    docker.withRegistry('https://index.docker.io/v1/', 'dockerhub') { <1>
+        img.push();
+    }
+----
+<1> Für die Registry kann sowohl URL als auch optional die Credentials-ID hinterlegt werden.
+
+Die Credentials für Dockerhub sind im Credentials-Plugin unter der ID 'dockerhub' hinterlegt.
+
+== Docker (simple) Deploy Step
+
+Wir wollen neue Versionen so schnell wie möglich und so nahe wie möglich an Produktion bringen. Zunächst wäre es schön, neue Versionen des Services irgendwo zu deployen. _Irgendwo_ ist in diesem Fall relativ klar definiert, denn aktuell haben wir nichts weiter als den Docker-Host auf dem auch der Jenkins deployt ist. Wir werden im nächsten Kapitel ausführlich über Deployment und Orchestrierung von Services sprechen, für jetzt aber möchten wir nur zeigen, dass wir fähig sind, Services kontinuierlich zu deployen.
+
+Wir lassen den Jenkins einfach nach jedem erfolgreichen Build eine neue Version deployen. Aktuell müssen wir uns noch selbst darum kümmern, veraltete Versionen wieder zu entfernen, sonst gibt der Raspberry relativ schnell auf.
+
+[source, bash]
+----
+ stage 'deploy'
+    img.run('-p 8080') <1>
+----
+<1> Deployt den Service und mappt einen beliebigen Host-Post auf den Container-Port 8080
+
+== Build Metriken
+
+Zu Beginn haben wir definiert, dass alles was wir anpassen, ändern, verbessern sich auch in den Metriken der Anwendung widerspiegeln muss. Das gilt nicht nur für die Software sonden ganz speziell auch für den kompletten Lebenszyklus der Anwendung - und ganz speziell für den Build.
+Metriken über den Build sagen sehr viel über die Entwicklung einer Anwendung aus.
+
+Dinge, die hierbei grundsätzlich (aber nicht exklusiv) interessant sind sind beispielsweise:
+- Build Dauer
+- Erfolg / Misserfolg Quote
+- Anzahl fehlgeschlagener Tests
+- Anzahl Tests (sollte beispielsweise nicht sinken..)
+- Build-Artefakt-Größe
+
+Natürlich verwenden wir hierfür denselben Stack wie auch für das Monitoring der Anwendung selbst - InfluxDB / Grafana. Jeder Build sollte die neu gewonnenen Erkenntnisse in der InfluxDB speichern und natürlich auch visualisieren, damit wir beispielsweise sofort bei einer signifikaten Verschlechterung der Build-Zeit reagieren können.
+Das lässt sich anschließend auch wunderbar mit einem Alert in _Kapacitor_ verknüpfen.
+
+Das Rad müssen wir hierfür allerdings nicht neu erfinden, denn es gibt bereits das https://github.com/jenkinsci/influxdb-plugin[Jenkins Influx DB Plugin]. Zum jetzigen Zeitpunkt ist das Plugin sehr rudimentär und liefert nur die allerwichtigsten Metriken, besser als nichts ist es aber allemal.
+
+Sobald das Plugin installiert ist ist es möglich, die Verbindung zur InfluxDB in der Jenkins-Konfiguration zu hinterlegen.
+
+image::/assets/images/06_jenkins_metrics.png[Metrics, 800]
+
+TIP: Aktuell bietet das Plugin weder die Möglichkeit, das Credentials-Plugin zu verwenden noch erlaubt es, die Retention Policy in der die Daten abgelegt werden zu konfigurieren. Die Credentials müssen also Plain hinterlegt werden.
+
+Das Plugin selbst ist bereits Pipeline-kompatibel, kann also aus dem Jenkinsfile heraus angesprochen werden.
+Für Freestyle-Jobs werden die Daten in die Influx als _Post-Build-Step_ übertragen. Meines Wissens nach ist das aktuell über eine Pipeline nicht möglich, da im Jenkinsfile selbst keine Post-Build-Steps konfiguriert werden können.
+Die Daten die aus der Pipeline heraus übertragen werden sind also teilweise unvollständig - beispielsweise kann kein richtiger Build-Status übertragen werden, da der Build zu diesem Zeitpunkt noch läuft und Jenkins nicht sagen kann, ob der Build erfolgreich war oder nicht.
+
+Um die Daten als letzten Step in die Influx zu übertragen definieren wir einen neuen Pipeline Step.
+
+[source, bash]
+----
+stage 'report'
+    step(['$class' : 'InfluxDbPublisher', 'selectedTarget' : 'influx']) <1>
+----
+<1> _selectedTarget_ bezieht sich auf die Influx-Konfiguration
+
+Mehr ist nicht zu konfigurieren. Die wichtigste Metrik (Build Dauer) bekommen wir hiermit schon und können diese über Grafana visualisieren.
+
+image::/assets/images/06_jenkins_build_duration.png[Build Dauer, 800]
+
+Die Datenbank 'build_metrics', in die die Metriken gespeichert werden haben wir in der Jenkins-Konfiguration festgelegt.
+
+image::/assets/images/06_jenkins_metrics_02.png[Metriken, 800]
+
+Für jeden Job wird dort eine eigenes Measurement angelegt mit dem Namen "build_<job-name>".
+
+Die Query zum Laden der Build-Zeiten in Grafana ist einfach und wird am besten über den Editor konfiguriert. Jenkins speichert die Build-Zeiten in Millisekunden.
+
+[source, bash]
+----
+SELECT last("jobduration") FROM "build_billy_time" WHERE $timeFilter GROUP BY time($interval) fill(null)
+----
+
+Um sich die Build-Zeiten in den Influx in einer Minutenauflösung zu betrachen reicht folgende Query.
+
+[source, bash]
+----
+select (jobduration / 1000 / 60) as build_min from build_billy_time
+----
+
+image::/assets/images/06_build_mins.png[Metriken, 800]
+
+Eine Build-Zeit von 5 Minuten inklusive Deployment scheint zunächst akzeptabel.
+Die beste Metrik aber hilft uns nichts, wenn wir sie nicht kontinuierlich auswerten.
+
+An den obigen Daten sieht man bereits, dass die Varianz der Build-Zeiten sehr hoch ist und zwischen 4,8 und 5,8 Minuten schwankt.
+Was also wäre ein sinnvoller Alert, auf den wir reagieren müssten?
+
+Man könnte sich beispielsweise vorstellen, den Mittelwert der letzten 10 Builds als Grad für die durchschnittliche (Soll)-Build-Dauer zu verwenden und zumindest einen Alert zu schicken, wenn ein Build um mehr als 20% von diesem Soll-Wert abweicht.
+
+TODO Skript schreiben?? Gar nicht so einfach..
+
+== Fazit
+
+Wir haben eine komplette Build-Pipeline aus dem Nichts heraus aufgebaut und können jetzt den Time-Service für jeden Commit bauen, testen, verteilen und deployen. Außerdem haben wir auch die wichtigste Metrik, die Build-Dauer aktiviert.
+Natürlich ist die Pipeline noch alles andere als ideal - so wird der Service zwar deployt aber immer auf den gleichen Knoten auf dem jetzt mehr oder weniger zufällig der Build läuft.
+
+Die Arbeit mit den Pipeline-Skripten ist wirklich einfach und auch in der Praxis so problemlos verwendbar.
+Natürlich gibt es noch die eine oder andere Stolperfalle, wie beispielsweise die fehlende Möglichkeit, _Post-Build_-Schritte zu definieren.
+Für den Moment aber können wir mit dem Erreichten zufrieden sein.
+
+Im nächsten Kapitel kümmern wir uns um die Orchestrierung und Deployment unserer Service-Landschaft und nutzen hierfür die Tools _at Hand_- Docker und Docker-Compose.
+Mit Docker 1.12 ist die Orchestrierung von Containern wirklich einfach geworden und Tools wie https://www.weave.works/[Weave] verlieren ein bisschen an Relevanz, zumindest für einfache Projekte.
+
+Hierfür werden wir auch weitere Container benötigen wie beispielsweise eine relationale Datenbank, um Daten zu persistieren. Allein dadurch wird sich eine ganze Menge neuer Probleme auftun, die es noch zu lösen gilt.

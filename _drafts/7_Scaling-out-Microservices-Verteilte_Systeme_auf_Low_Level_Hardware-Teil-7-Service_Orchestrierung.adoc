@@ -1,0 +1,33 @@
+---
+layout: default
+title: Microservices auf Commodity Hardware Teil 7 - Service Orchestrierung
+shortTitle: Microservices und Commodity Hardware Teil 7
+documentationExpanded: false
+comments: true
+postsExpanded: true
+categories: microservices spring-boot distributed-systems
+published: true
+excerpt: excerpt
+root: ../../
+---
+
+= Service Orchestrierung
+
+Im den letzten Kapiteln haben wir den erstern Service _billy_time_ gebaut, deployt und in die Infrastruktur integriert. Der Service wird überwacht und liefert momentan nichts weiter als eine statische Projektliste zurück, auf die wir irgendwann unsere Zeiten buchen wollen. In diesem Kapitel werden wir das Portfolio um einen weiteren Service erweitern und zwar den echten Projekt-Service. Dieser Service verwaltet eine Liste von aktuellen und vergangenen Projekten mit Laufzeit, eingesetzten Technologien und Kunden.
+
+Die beiden Services kommunizieren miteinander, da _billy-time_ eine aktuelle Liste von Projekten benötigt, um darauf Zeiten buchen und verwalten zu können. Natürlich könnten wir eine Punkt-zu-Punkt Verbindung (beispielsweise via REST) zwischen den Services etablieren, damit koppeln wir die beiden Services allerdings relativ eng aneinander, denn der Time-Service kann nicht mehr funktionieren, wenn der Projekt-Service nicht verfügbar ist.
+Besser wäre es, die beiden Services könnten unabhängig voneinander betrieben werden. Welche Möglichkeiten wir hierfür haben evaluieren wir später im Artikel.
+
+Auf Projekte können Zeiten gebucht werden und ich als Freelancer kann zu jeder Zeit in beliebig vielen Projekten aktiv sein.
+
+Die Zielarchitektur der beiden Services könnte so aussehen.
+
+image::/assets/images/07_components.png[Komponenten, 800]
+
+Beide Services werden als Container in einem oder mehreren Docker-Hosts deployt. Die Services werden hierbei von Docker selbst orchestriert. Die Idee ist, dass wir nur definieren, was der Zielzustand ist und Docker kümmert sich darum, diesen Zielzustand so vollständig wie möglich umzusetzen.
+
+Wir legen also beispielsweise fest, dass wir jeweils eine Instanz des _billy_time_ und eine Instanz des _billy_project_-Services brauchen. Genauso brauchen wir eine oder mehrere Instanzen einer Datenbank, um die Service-Daten zu persistieren. Auf welchen Hosts diese Services deployt werden ist allein die Aufgabe von Docker und wir müssen uns nicht weiter darum kümmern.
+
+Die Komponente in Docker die sich um das Scheduling und die Orchestrierung der Services kümmert ist _Docker Swarm_. Vor Docker 1.12 war es zwingend nötig, Docker Swarm als separaten Container auf jedem Host zu deployen. Seit Docker 1.12 ist Swarm in Docker integriert und kann direkt verwendet werden.
+
+=== Docker Swarm
