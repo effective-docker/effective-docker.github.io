@@ -31,3 +31,8 @@ Wir legen also beispielsweise fest, dass wir jeweils eine Instanz des _billy_tim
 Die Komponente in Docker die sich um das Scheduling und die Orchestrierung der Services kümmert ist _Docker Swarm_. Vor Docker 1.12 war es zwingend nötig, Docker Swarm als separaten Container auf jedem Host zu deployen. Seit Docker 1.12 ist Swarm in Docker integriert und kann direkt verwendet werden.
 
 === Docker Swarm
+
+Docker Swarm ist die seit Docker 1.12 eingebaute Container-Orchestrierung, die es uns erlaubt, von der _echten_ Hardware zu abstrahieren.
+
+Um einen neuen Schwarm zu initialisieren war vor Docker 1.12 ein separater Container auf jedem Node notwendig, um Swarm-Manager und Swarm-Agents zu deployen. Über den Swarm-Manager ist es möglich, Docker anzuweisen, einen Container einer bestimmten Version auf einer beliebigen vefügbaren Hardware zu deployen.
+

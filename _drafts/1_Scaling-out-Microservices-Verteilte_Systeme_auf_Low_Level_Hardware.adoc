@@ -209,7 +209,7 @@ auf dem bereits alles notwendige vorinstalliert ist. Einfach SD Karte mit dem Im
 Sollten Sie die Raspberries noch nicht bestellt haben machen Sie das bitte jetzt und lassen Sie den Artikel einige
 Tage ruhen bis die Lieferung kommt. Glauben Sie mir, es macht mehr Spaß mitzumachen als nur zuzuschauen.
 
-In der Zwischenzeit empfehle ich Ihnen, das jeweils aktuellste Hypriot-Image[http://blog.hypriot.com/downloads/] herunterzuladen.
+In der Zwischenzeit empfehle ich Ihnen, das jeweils aktuellste http://blog.hypriot.com/downloads/[Hypriot-Image] herunterzuladen.
 Zusätzlich laden Sie sich bitte das https://github.com/hypriot/flash[Hypriot Flash Tool], mit dem es kinderleicht
 ist, eine SD-Karte mit einem neuen Image zu flashen.
 
@@ -222,8 +222,8 @@ Sie werden sehen, es ist kinderleicht dank es Flash-Tools von Hypriot.
 
 [source]
 ----
-flash --hostname pi23 hypriotos-rpi-v0.8.0.img.zip <1>
-Uncompressing hypriotos-rpi-v0.8.0.img.zip ...
+flash --hostname pi23 hypriotos-rpi-v1.0.0.img.zip <1>
+Uncompressing hypriotos-rpi-v1.0.0.img.zip ...
 
 Is /dev/disk2 correct? y
  377MiB 0:00:26 [14.4MiB/s] [======================================>                                                                                                ] 29% ETA 0:01:03

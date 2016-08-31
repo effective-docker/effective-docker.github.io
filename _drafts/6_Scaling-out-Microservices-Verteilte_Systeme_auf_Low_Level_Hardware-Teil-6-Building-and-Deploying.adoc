@@ -58,7 +58,7 @@ Jenkins bietet kein offizielles Images für den Raspberry-PI, deswegen habe ich 
 [source, bash]
 ----
 docker volume create --name jenkins-data <1>
-docker run -d -p 8080:8080 -p 50000:50000 -v jenkins-data:/var/jenkins_home dilgerm/rpi-jenkins:2.0.9 <2>
+docker run -d -p 8080:8080 -p 50000:50000 -v jenkins-data:/var/jenkins_home dilgerm/rpi-jenkins:2.20 <2>
 ----
 <1> Persistentes Volume für Jenkins erzeugen
 <2> Jenkins startet auf Port 8080 und verwendet das soeben erzeugte Volume. Den Port 50000 brauchen wir später um Slave-Agents anzusprechen.
