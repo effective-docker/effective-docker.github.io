@@ -9,5 +9,5 @@ gem 'jekyll-feed'
 
 
 group :jekyll_plugins do
-  gem "jekyll-asciidoc", '~> 1.0.0'
+  gem "jekyll-asciidoc", '~> 2.0.1'
 end
