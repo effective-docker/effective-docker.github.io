@@ -9,14 +9,15 @@
 
 
     <meta name="description"
-          content="Update what your Blog is about in this section"/>
+          content="Docker in Production, Docker Blog, Docker in Produktion, Docker Internals"/>
 
-    <meta name="author" content="Your name goes here"/>
-    <meta name="copyright" content="Maybe consider a Creative Commons license"/>
+    <meta name="author" content="Martin Dilger"/>
 
     {% include header.html %}
 
     <link rel="stylesheet" href="{{page.root}}css/app.css"/>
+    <script src="{{page.root}}js/vendor/jquery.js"></script>
+    <script src="{{page.root}}js/foundation.min.js"></script>
     <script src="{{page.root}}js/vendor/modernizr.js"></script>
     <script src="{{page.root}}js/toc.js"></script>
 </head>
@@ -25,19 +26,6 @@
 
 <!-- Nav Bar -->
 <div class="container">
-    <!--nav class="top-bar" data-topbar>
-        <ul class="title-area">
-            <li class="name">
-                <h1>
-                    <a href="{{page.root}}">
-                        {{page.title}}
-                    </a>
-                </h1>
-            </li>
-            <li class="toggle-topbar menu-icon"><a href="#"><span>Menu</span></a></li>
-        </ul>
-    </nav-->
-
     {% include navbar.html %}
 
     <!-- End Nav -->
@@ -60,21 +48,6 @@
 
         <aside class="col-sm-3 col-sm-offset-1 blog-sidebar">
 
-            <h4>Kategorien</h4>
-            <ul id="posts" class="posts nav">
-                {% assign tags_list = site.categories %}
-                {% if tags_list.first[0] == null %}
-                {% for tag in tags_list %}
-                <li><a href="#{{ tag }}">{{ tag | capitalize }}</a></li>
-                {% endfor %}
-                {% else %}
-                {% for tag in tags_list %}
-                <li><a href="#{{ tag[0] }}">{{ tag[0] | capitalize }}</a></li>
-                {% endfor %}
-                {% endif %}
-                {% assign tags_list = nil %}
-            </ul>
-
             <div class="sidebar-well">
                 <h5>Über mich</h5>
 
@@ -82,7 +55,7 @@
                 Verteilte Systeme, Resilient Software und Craftmanship.
                 10+ Jahre Erfahrung, <a
                     href="http://www.amazon.de/gp/product/B00HXURPHG/ref=as_li_qf_sp_asin_tl?ie=UTF8&camp=1638&creative=6742&creativeASIN=B00HXURPHG&linkCode=as2&tag=splitshadewor-21">Buch-Autor</a>,
-                Git-Trainer, Geek, Daddy.
+                Git-Trainer, Docker-Trainer, Daddy.
             </div>
 
         </aside>
@@ -111,13 +84,9 @@
         </div>
     </footer>
 
-    <script src="{{page.root}}js/vendor/jquery.js"></script>
-    <script src="{{page.root}}js/foundation.min.js"></script>
-    <script>
+     <script>
         $(document).foundation();
     </script>
-    <script src="{{page.root}}js/vendor/jquery.js"></script>
-    <script src="{{page.root}}js/foundation/foundation.js"></script>
     <script>
         $(document).foundation();
 
