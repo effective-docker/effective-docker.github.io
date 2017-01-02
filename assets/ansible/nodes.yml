@@ -5,4 +5,4 @@
   #serial: 1
   roles:
   - {role: metered-node, tags: ['metered']}
-  - {role: docker-host, tags: ['docker']}
+#  - {role: docker-host, tags: ['docker']}
