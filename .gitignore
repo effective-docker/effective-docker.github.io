@@ -9,3 +9,5 @@ Gemfile.lock
 *.swp
 .idea
 *.retry
+keys
+keys.pub
