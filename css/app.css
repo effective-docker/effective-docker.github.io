@@ -1,7 +1,7 @@
 @charset "UTF-8";
 @media only screen and (min-width: 600px) {
   .top-page {
-    background-image: url("/assets/images/muenchen.png");
+    background-image: url("/assets/images/docker.png");
     background-position: center bottom;
     background-repeat: no-repeat;
     background-size: contain;
@@ -25,6 +25,10 @@
 
 .admonitionblock > > .title {
   margin-right: 15px;
+}
+
+.effective_green {
+  color: #5b9535;
 }
 
 /*!
