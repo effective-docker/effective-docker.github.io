@@ -170,6 +170,7 @@
 </li>
 </ul>
 </div>
+<hr>
 </div>
 <div class="sect2">
 <h3 id="docker-container-health-checks">Docker Container Health Checks</h3>
@@ -177,7 +178,7 @@
 <p>Anwendungen zu deployen ist <em>einfach</em>, und Docker Container zu starten ist noch <em>einfacher</em>.
  Ein einfaches <em>docker run</em> und schon sind wir live. Das funktioniert
  auch eine ganze Zeit bis zum ersten Problem - sei es nun eine <em>Lastspitze</em>, ein <em>Bug</em>, ein Amoklaufender Prozess oder einfach ein <em>temporäres</em> Netzwerkproblem.
- Die Anwendung ist nicht erreichbar, unsere <em>E-Commerce</em>-Plattform ist für die Kunden nichts weiter als eine <strong>500 - Wir arbeiten an einer Lösung</strong> und bis wir diese gefunden haben ist die Bestellung meistens schon bei der Konkurrenz gelandet.</p>
+ Die Anwendung ist nicht erreichbar, unsere <em>E-Commerce</em>-Plattform ist für die Kunden nichts weiter als eine <em>500 - Wir arbeiten an einer Lösung</em> und bis wir diese gefunden haben ist die Bestellung meistens schon bei der Konkurrenz gelandet.</p>
 </div>
 <div class="paragraph">
 <p>Was machen wir also? Wir designen unser System so sicher und <em>gut</em>, dass einfach keine Fehler auftreten? Das klingt verlockend, ist aber schlichtweg nicht möglich und sogar gefährlich, da wir uns dann in falscher Sicherheit wiegen. Wenn dann doch ein Problem auftritt sind wir nicht dafür gewappnet.</p>
@@ -194,8 +195,10 @@ Besser ist es, die Anwendung gleich von Anfang so zu bauen dass Fehler akzeptier
 </tr>
 </table>
 </div>
-<div class="sect3">
-<h4 id="beispielanwendung">Beispielanwendung</h4>
+<hr>
+</div>
+<div class="sect2">
+<h3 id="beispielanwendung">Beispielanwendung</h3>
 <div class="paragraph">
 <p>Die Anwendung ist eine Spring Boot Anwendung mit <a href="https://docs.spring.io/spring-boot/docs/current-SNAPSHOT/reference/htmlsingle/#production-ready">Actuator</a>.</p>
 </div>
@@ -253,7 +256,7 @@ Der Container selbst hat <em>bis jetzt</em> noch keinen Health-State.</p>
 <div class="paragraph">
 <p>Damit die Engine auf eine Änderung im Health-Status reagieren kann muss der Container selbst auch wissen, ob er Healthy ist oder nicht. Und genau hier kommen die neuen Health-Checks ins Spiel.</p>
 </div>
-</div>
+<hr>
 </div>
 <div class="sect2">
 <h3 id="docker-health-check">Docker Health Check</h3>
@@ -386,6 +389,7 @@ CONTAINER ID        IMAGE                              COMMAND                CR
 <div class="paragraph">
 <p>Ein Scheduler wie Docker Swarm könnte jetzt beispielsweise den Container einfach neustarten, <em>in der Hoffnung</em>, dass das hilft.</p>
 </div>
+<hr>
 <div class="sect3">
 <h4 id="fazit">Fazit</h4>
 <div class="paragraph">
@@ -404,13 +408,7 @@ CONTAINER ID        IMAGE                              COMMAND                CR
 <div class="paragraph">
 <p>Docker Swarm beispielsweise macht sich den Health-Check zu Nutze und routet nur Requests zu Containern, die <em>healthy</em> sind. Außerdem versucht Swarm, Container neu zu deployen, wenn Sie in den Status <em>unhealthy</em> wechseln.</p>
 </div>
-</div>
-<div class="sect3">
-<h4 id="docker-training">Docker Training</h4>
-<div class="paragraph">
-<p>Wollen Sie mehr erfahren?
-Ich biete <a href="http://www.effectivetrainings.de/html/workshops/effective_docker_workshop.php">Consulting / Training</a> für Docker. Schauen Sie doch mal vorbei!</p>
-</div>
+<hr>
 </div>
 <div class="sect3">
 <h4 id="links">Links</h4>
@@ -422,6 +420,14 @@ Ich biete <a href="http://www.effectivetrainings.de/html/workshops/effective_doc
 </div>
 <div class="paragraph">
 <p>Schöner NewRelic <a href="https://blog.newrelic.com/2016/08/24/docker-health-check-instruction/">Post</a> zum Thema</p>
+</div>
+<hr>
+</div>
+<div class="sect3">
+<h4 id="docker-training">Docker Training</h4>
+<div class="paragraph">
+<p><strong>Wollen Sie mehr erfahren?</strong>
+Ich biete <a href="http://www.effectivetrainings.de/html/workshops/effective_docker_workshop.php">Consulting / Training</a> für Docker. Schauen Sie doch mal vorbei!</p>
 </div>
 </div>
 </div>
