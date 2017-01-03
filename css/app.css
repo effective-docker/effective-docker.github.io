@@ -20,7 +20,14 @@
 }
 
 .admonitionblock {
-  margin: 20px 0px 10px 0px;
+  margin: 40px 0px 40px 0px;
+}
+
+.admonitionblock .content {
+  border-left: 1px solid #6aad2e;
+  padding: 5px;
+  color: #9d9d9d;
+  padding: 30px;
 }
 
 .admonitionblock .title {
@@ -34,6 +41,20 @@
 
 .effective_green {
   color: #5b9535;
+}
+
+.colist li {
+  font-weight: bold;
+  list-style-type: decimal;
+}
+
+.listingblock {
+  padding: 5px;
+}
+
+.listingblock .highlight {
+  background: #6aad2e;
+  color: white;
 }
 
 /*!
