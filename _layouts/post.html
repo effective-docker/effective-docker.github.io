@@ -1,0 +1,98 @@
+<!doctype html>
+<!--[if IE 9]>
+<html class="lt-ie10" lang="en"> <![endif]-->
+<html class="no-js" lang="en" data-useragent="Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.2; Trident/6.0)">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>{{page.title}}</title>
+
+
+    <meta name="description"
+          content="Docker in Production, Docker Blog, Docker in Produktion, Docker Internals"/>
+
+    <meta name="author" content="Martin Dilger"/>
+
+    {% include header.html %}
+
+    <link rel="stylesheet" href="{{page.root}}css/app.css"/>
+    <script src="{{page.root}}js/vendor/jquery.js"></script>
+    <script src="{{page.root}}js/foundation.min.js"></script>
+    <script src="{{page.root}}js/vendor/modernizr.js"></script>
+    <script src="{{page.root}}js/toc.js"></script>
+</head>
+<body>
+
+
+<!-- Nav Bar -->
+<div class="container">
+    {% include navbar.html %}
+
+    <!-- End Nav -->
+
+
+    <!-- Main Page Content and Sidebar -->
+
+    <div class="row">
+
+        <!-- Main Blog Content -->
+        <div class="col-sm-8 blog-main" role="content">
+            {{ content }}
+        </div>
+
+        <!-- End Main Content -->
+
+        <!-- Sidebar -->
+
+        <aside class="col-sm-3 col-sm-offset-1 blog-sidebar">
+
+            <!-- Footer -->
+            <h5>Posts</h5>
+
+            <ul id="all-posts" class="posts nav">
+                {% for post in site.posts %}
+                <li><a href="{{ post.url }}">{{ post.shortTitle }}</a></li>
+                {% endfor %}
+            </ul>
+
+            <div class="sidebar-well">
+
+                <h5>Über mich</h5>
+
+                <p>Ich bin Martin. Freiberuflicher Softwareentwickler / Consultant / Trainer. </p>
+                Verteilte Systeme, Resilient Software und Craftmanship.
+                10+ Jahre Erfahrung, <a
+                    href="http://www.amazon.de/gp/product/B00HXURPHG/ref=as_li_qf_sp_asin_tl?ie=UTF8&camp=1638&creative=6742&creativeASIN=B00HXURPHG&linkCode=as2&tag=splitshadewor-21">Buch-Autor</a>,
+                Git-Trainer, Docker-Trainer, Daddy.
+            </div>
+
+        </aside>
+
+        <!-- End Sidebar -->
+    </div>
+    <!-- End Main Content and Sidebar -->
+
+    <footer class="row">
+        <div class="large-12 columns">
+            <hr/>
+            <div class="row">
+                <div class="large-12 columns">
+                    {% include footer.html %}
+                </div>
+            </div>
+        </div>
+    </footer>
+    <script>
+        $(document).foundation();
+    </script>
+    <script>
+        $(document).foundation();
+
+        var doc = document.documentElement;
+        doc.setAttribute('data-useragent', navigator.userAgent);
+    </script>
+
+</div>
+<script id="dsq-count-scr" src="//effective-docker-github-io.disqus.com/count.js" async></script>
+</bod
+</html>
