@@ -1,0 +1,30 @@
+---
+layout: default
+title: Docker Health Checks
+shortTitle: Health Checks mit Docker, Spring Boot und Actuator
+documentationExpanded: false
+comments: true
+postsExpanded: true
+categories: docker spring-boot devops
+excerpt: excerpt
+example-caption: Beispiel
+caution-caption: Achtung
+root: ../../
+---
+== Docker Health Checks
+:tip-caption: Tipp
+:caution-caption: Achtung
+:question-caption: Frage
+:warning-caption: Warnung
+
+
+
+Anwendungen zu deployen ist _einfach_, und Docker Container zu starten ist noch _einfacher_.
+ Ein einfaches _docker run_ und schon sind wir live. Das funktioniert
+ auch eine ganze Zeit bis zum ersten Problem - sei es nun eine _Lastspitze_, ein _Bug_, ein Amoklaufender Prozess oder einfach ein _temporäres_ Netzwerkproblem.
+ Die Anwendung ist nicht erreichbar, unsere _E-Commerce_-Plattform ist für die Kunden nichts weiter als eine *500 - Wir arbeiten an einer Lösung* und bis wir diese gefunden haben ist die Bestellung meistens schon bei der Konkurrenz gelandet.
+
+Was machen wir also? Wir designen unser System so sicher und _gut_, dass einfach keine Fehler auftreten? Das klingt verlockend, ist aber schlichtweg nicht möglich und sogar gefährlich, da wir uns dann in falscher Sicherheit wiegen und wenn dann doch ein Problem auftritt sind wir nicht dafür gewappnet.
+
+TIP: Besser ist es, die Anwendung gleich von Anfang so zu bauen dass Fehler akzeptiert werden und die Anwendung entsprechend darauf reagiert. *Resilient Software* ist hier das wichtige Stichwort.
+
