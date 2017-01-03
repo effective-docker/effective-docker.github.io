@@ -1,0 +1,515 @@
+<!doctype html>
+<!--[if IE 9]>
+<html class="lt-ie10" lang="en"> <![endif]-->
+<html class="no-js" lang="en" data-useragent="Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.2; Trident/6.0)">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Docker Health Checks</title>
+
+
+    <meta name="description"
+          content="Docker in Production, Docker Blog, Docker in Produktion, Docker Internals"/>
+
+    <meta name="author" content="Martin Dilger"/>
+
+    <meta http-equiv="X-UA-Compatible" content="edge">
+<meta charset="utf-8">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta http-equiv="content-script-type" content="text/javascript" />
+<meta http-equiv="content-style-type" content="text/css" />
+<meta http-equiv="language" content="de" />
+<meta http-equiv="pragma" content="no-cache" />
+
+<meta name="description" content="Persoenliche IT-Trainings mit Erfolgsgarantie - Docker- Git- Scrum und Kanbanschulungen, IT Consulting fuer Java, Enterprise- und Web-Projekte im agilen Umfeld." xml:lang="de"/>
+<meta name="shortDescription" content="IT Consulting & Professionelle IT Trainings"/>
+<meta name="robots" content="index,follow" />
+<meta name="DC.Publisher" content="Martin Dilger - Effective Trainings" />
+<meta name="DC.Language" content="de" />
+<meta name="publisher" content="Martin Dilger - Effective Trainings" />
+<meta name="googlebot" content="archive"/>
+<meta name="resource-type" content="content"/>
+<meta name="audience" content="all"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<link rel="alternate" type="application/rss+xml" title="Effective Trainings RSS" href="http://effective-docker.github.io" />
+<link rel="author" href="https://plus.google.com/u/0/103776857080750763965"/>
+<!-- Le styles -->
+
+<!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
+<!--[if lt IE 9]>
+<script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+<![endif]-->
+<!-- custom css -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css"/>
+<script type="text/javascript" language="javascript">
+    var _gaq = _gaq || [];
+    function trackLink(link, category, action, redirect) {
+
+        if(redirect == undefined) {
+            redirect = true;
+        }
+
+        try {
+            _gaq.push(['_trackEvent', category , action]);
+        } catch (error) {
+            console.log("tracking error");
+        }
+
+        if(redirect) {
+        setTimeout(function () {
+            document.location.href = link.href;
+        }, 100);
+        }
+    }
+</script>
+
+
+    <link rel="stylesheet" href="../../css/app.css"/>
+    <script src="../../js/vendor/jquery.js"></script>
+    <script src="../../js/foundation.min.js"></script>
+    <script src="../../js/vendor/modernizr.js"></script>
+    <script src="../../js/toc.js"></script>
+</head>
+<body>
+
+
+<!-- Nav Bar -->
+<div class="container">
+    <div class="row">
+    <nav class="navbar navbar-default top-page">
+        <div class="container-fluid">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
+                        data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <!--a class="navbar-brand" href="#">Brand</a-->
+            </div>
+
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                <!--<ul class="nav navbar-nav navbar-right"></ul>-->
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <!-- xing -->
+                        <a title="XING" onclick="trackLink(this,'social-media','xing');return false;"
+                           href="https://www.xing.com/profile/Martin_Dilger2" target="_blank" rel="me"><img
+                                src="http://www.xing.com/img/n/xing_icon_32x32.png" width="32" height="32" alt="XING"
+                                target="_blank"></a></li>
+                    <li>
+                        <!-- gulp -->
+                        <a title="Beraterprofil auf Gulp" href="http://www.gulp.de/Profil/martindilger.html"
+                           target="_blank" onclick="trackLink(this,'social-media','gulp');return false;" rel="me"><img
+                                src="https://www.gulp.de/presse/images/bildmaterial/gulp-logo.jpg" height="32"
+                                alt="Gulp Berater Profil"></a></li>
+                    <li>
+                        <!-- twitter -->
+                        <a title="Twitter" href="https://twitter.com/#!/dilgerma" target="_blank" rel="me"
+                           onclick="trackLink(this,'social-media','twitter');return false;">
+                            <img src="https://effectivetrainings.de/images/twitter.png" width="32"
+                                                                     height="32"
+                                                                     alt="Twitter"></a>
+                    <li>
+                        <!-- github -->
+                        <a title="Github" href="https://github.com/dilgerma" target="_blank" rel="me"
+                           onclick="trackLink(this,'social-media','github');return false;"><img
+                                src="http://effectivetrainings.de/images/effective/github.png" width="32" height="32"
+                                alt="GitHub"
+                                target="_blank"></a>
+                    </li>
+                    <li>
+                        <!-- slideshare -->
+                        <a title="Slideshare" href="http://de.slideshare.net/effectivetrainings"
+                           onclick="trackLink(this,'social-media','slideshare');return false;" target="_blank" rel="me"><img
+                                src="https://effectivetrainings.de/images/effective/slideshare.png" width="32"
+                                height="32"
+                                alt="Slideshare"></a>
+                    </li>
+                </ul>
+                <!--ul class="nav navbar-nav navbar-right">
+                    <li><a href="#">Link</a></li>
+                    </li>
+                </ul-->
+            </div>
+            <!-- /.navbar-collapse -->
+        </div><!-- /.container-fluid -->
+    </nav>
+</div>
+
+
+
+
+    <!-- End Nav -->
+
+
+    <!-- Main Page Content and Sidebar -->
+
+    <div class="row">
+
+        <!-- Main Blog Content -->
+        <div class="col-sm-8 blog-main" role="content">
+
+            <div class="sect1">
+<h2 id="docker-health-checks">Docker Health Checks</h2>
+<div class="sectionbody">
+
+</div>
+</div>
+<div class="sect1">
+<h2 id="tldr">TLDR;</h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p>Die Sourcen sind unter : <a href="https://github.com/effective-docker/docker-healthcheck.git" class="bare">https://github.com/effective-docker/docker-healthcheck.git</a></p>
+</li>
+<li>
+<p>Seit Docker 1.12 gibt es die Möglichkeit, Health-Checks für Container zu definieren</p>
+</li>
+<li>
+<p>Health-Checks sind vor allem zusammen mit Swarm hochinteressant: <a href="https://docs.docker.com/engine/reference/builder/#/healthcheck" class="bare">https://docs.docker.com/engine/reference/builder/#/healthcheck</a></p>
+</li>
+</ul>
+</div>
+<div class="sect2">
+<h3 id="docker-container-health-checks">Docker Container Health Checks</h3>
+<div class="paragraph">
+<p>Anwendungen zu deployen ist <em>einfach</em>, und Docker Container zu starten ist noch <em>einfacher</em>.
+ Ein einfaches <em>docker run</em> und schon sind wir live. Das funktioniert
+ auch eine ganze Zeit bis zum ersten Problem - sei es nun eine <em>Lastspitze</em>, ein <em>Bug</em>, ein Amoklaufender Prozess oder einfach ein <em>temporäres</em> Netzwerkproblem.
+ Die Anwendung ist nicht erreichbar, unsere <em>E-Commerce</em>-Plattform ist für die Kunden nichts weiter als eine <strong>500 - Wir arbeiten an einer Lösung</strong> und bis wir diese gefunden haben ist die Bestellung meistens schon bei der Konkurrenz gelandet.</p>
+</div>
+<div class="paragraph">
+<p>Was machen wir also? Wir designen unser System so sicher und <em>gut</em>, dass einfach keine Fehler auftreten? Das klingt verlockend, ist aber schlichtweg nicht möglich und sogar gefährlich, da wir uns dann in falscher Sicherheit wiegen. Wenn dann doch ein Problem auftritt sind wir nicht dafür gewappnet.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Tipp</div>
+</td>
+<td class="content">
+Besser ist es, die Anwendung gleich von Anfang so zu bauen dass Fehler akzeptiert werden und die Anwendung entsprechend darauf reagiert. <strong>Resilient Software</strong> ist hier das wichtige Stichwort.
+</td>
+</tr>
+</table>
+</div>
+<div class="sect3">
+<h4 id="beispielanwendung">Beispielanwendung</h4>
+<div class="paragraph">
+<p>Die Anwendung ist eine Spring Boot Anwendung mit <a href="https://docs.spring.io/spring-boot/docs/current-SNAPSHOT/reference/htmlsingle/#production-ready">Actuator</a>.</p>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Wichtig</div>
+</td>
+<td class="content">
+Spring Boot Actuator bietet eine ganze Menge <em>Endpoints</em> um den Zustand der Anwendung zu überwachen. Die Anwendung gibt beispielsweise über den Endpunkt "/blog/health" den Status zurück, ob sie <em>healthy</em> ist. Healthy ist natürlich abhängig davon ob die verwendeten Upstream Services und die Infrastruktur-Komponenten verfügbar sind. Beispielsweise sollte die Anwendung nur <em>healthy</em> sein, wenn eine verwendete Datenbank vorhanden ist.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Als nächstes starten wir die Anwendung.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-bash" data-lang="bash">docker run -d --rm -p 8080:8080 effectivetrainings/docker-health</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Nach kurzer Zeit können wir über einen <em>cURL</em> die <em>Healthyness</em> der Anwendung abfragen.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-bash" data-lang="bash">{
+"status":"UP",
+"static":{"status":"UP"},
+"diskSpace": {"status":"UP","total":67371577344,"free":61355114496,"threshold":10485760}
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Hier sehen wir die <em>HealthChecks</em> der Anwendung. Selbst geschrieben ist der Static-Health-Check, mit dem die Anwendung einfach statisch in einen Healthy- oder Unhealthy-Zustand gesetzt werden kann.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-bash" data-lang="bash">curl "http://localhost:8080/environment/health?status=false"
+
+curl "http://localhost:8080/health"
+{
+    "status": "DOWN",
+    "static":{"status":"DOWN"},
+    "diskSpace":{"status":"UP","total":67371577344,"free":61354893312,threshold":10485760}
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Das Problem ist, der Container ist per Definition bisher immer noch gesund, obwohl die Anwendung vielleicht nicht mal antwortet. Die <em>Docker Engine</em> weiß nichts vom Health-Status der Anwendung.
+Der Container selbst hat <em>bis jetzt</em> noch keinen Health-State.</p>
+</div>
+<div class="paragraph">
+<p>Damit die Engine auf eine Änderung im Health-Status reagieren kann muss der Container selbst auch wissen, ob er Healthy ist oder nicht. Und genau hier kommen die neuen Health-Checks ins Spiel.</p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="docker-health-check">Docker Health Check</h3>
+<div class="paragraph">
+<p>Health Checks sind essentiell für die Anwendung - sowohl für das Monitoring, den Betrieb als auch für beispielsweise <em>Service Discovery</em> in verteilten Umgebungen.
+Dabei kann sich ein Health-Check ganz unterschiedlich gestalten, beispielsweise kann es für eine Oracle ein einfaches SQL Statement sein wie <em>select count from dual</em>, ein HTTP-Status Code eines Actuator-Endpoints oder ein bash-script das nur prüft, ob ein bestimmter Prozess noch lebt.</p>
+</div>
+<div class="paragraph">
+<p>Für jeden Container kann separat definiert werden, wie ein Health-Check ausgeführt werden kann. Für die Überwachung der Spring-Boot Anwendung beispielsweise bietet sich die Abfrage des <em>Health</em>-Endpoint mittels <em>cURL</em> an.</p>
+</div>
+<div class="paragraph">
+<p>Für den Health-Check sind folgende Parameter für <em>docker run</em> hinzugekommen. Analog könnten die Health-Checks im Dockerfile definiert werden.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-bash" data-lang="bash">--health-cmd string   <b class="conum">(1)</b>
+--health-interval duration  (default 0s) <b class="conum">(2)</b>
+--health-retries int <b class="conum">(3)</b>
+--health-timeout duration (default 0s) <b class="conum">(4)</b></code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<ol>
+<li>
+<p>Kommando für den Health-Check (Bash, Python..)</p>
+</li>
+<li>
+<p>Zeit zwischen Health-Checks, standardmäßig alle 30  sekunden.</p>
+</li>
+<li>
+<p>Retries bevor ein Container als <em>unhealthy</em> deklariert wird</p>
+</li>
+<li>
+<p>Timeout für den Health-Check</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>Ein einfacher Health-Check für die Spring-Boot Anwendung wäre beispielsweise folgender <em>cURL</em>-Aufruf.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Tipp</div>
+</td>
+<td class="content">
+Ein Health-Check liefert einen boolschen Wert - 1 oder 0. 1 &#8658; healthy, 0 &#8658; unhealthy.
+</td>
+</tr>
+</table>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-bash" data-lang="bash">--health-cmd curl -f http://localhost:8080/health | exit 1 <b class="conum">(1)</b></code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<ol>
+<li>
+<p>Mit <em>curl -f</em> zwingt curl, den Fehlercode 0 im Falle eines HTTP-Errors zurückzuliefern. Andernfalls liefert <em>exit 1</em> eine 1 und macht den Service damit healthy.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>Starten wir den Container mit aktiviertem Health-Check.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-bash" data-lang="bash">docker run -p 8080:8080 -d --name health-check --rm --health-cmd "curl -f http://localhost:8080/health || exit 1" effectivetrainings/docker-health</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Die Instruktion im Dockerfile wäre analog.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-bash" data-lang="bash">HEALTHCHECK CMD curl -f http://localhost:8080/health || exit 1;</code></pre>
+</div>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Achtung</div>
+</td>
+<td class="content">
+Achtung - der Health-Check wird im Container ausgeführt, nur der interne Container ist also wichtig - <strong>nicht</strong> der gemappte.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Mit <em>docker inspect healthcheck</em> sehen wir jetzt einen Health-Status für den Container.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-bash" data-lang="bash">"Health": {
+    "Status": "starting",
+    "FailingStreak": 0,
+    "Log": []
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Parallel ist es recht spannend, sich den Docker Event Stream ausgeben zu lassen.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-bash" data-lang="bash">docker events
+
+2017-01-03T22:10:18.137182990+01:00 container exec_start: /bin/sh -c curl -f http://localhost:8080/health 1a2bfc354a3eb75c41e8822620c85b7920ba0ebb9103aa481b090da6ce137037 (image=effectivetrainings/docker-health, name=health-check)
+
+2017-01-03T22:10:18.527115972+01:00 container health_status: healthy 1a2bfc354a3eb75c41e8822620c85b7920ba0ebb9103aa481b090da6ce137037 (image=effectivetrainings/docker-health, name=health-check)</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Was aber passiert jetzt, wenn wir den Container auf <em>unhealthy</em> setzen? Je nach eingestelltem Interval dauert es jetzt kurz, bis die Engine das Problem entdeckt.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-bash" data-lang="bash">curl "localhost:8080/environment/health?status=false"
+
+docker ps
+
+CONTAINER ID        IMAGE                              COMMAND                CREATED             STATUS                     PORTS                    NAMES
+1a2bfc354a3e        effectivetrainings/docker-health   "java -jar /app.jar"   3 minutes ago       Up 3 minutes (unhealthy)   0.0.0.0:8080-&gt;8080/tcp   health-check</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Ein Scheduler wie Docker Swarm könnte jetzt beispielsweise den Container einfach neustarten, <em>in der Hoffnung</em>, dass das hilft.</p>
+</div>
+<div class="sect3">
+<h4 id="fazit">Fazit</h4>
+<div class="paragraph">
+<p>Mit Container-Health Checks können relativ einfach Checks implementiert werden, die einen Scheduler unterstützen können die richtigen Entscheidungen zu treffen.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Welcher Container wird jetzt neugestartet?</p>
+</li>
+<li>
+<p>Wohin soll deployt werden</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Docker Swarm beispielsweise macht sich den Health-Check zu Nutze und routet nur Requests zu Containern, die <em>healthy</em> sind. Außerdem versucht Swarm, Container neu zu deployen, wenn Sie in den Status <em>unhealthy</em> wechseln.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="docker-training">Docker Training</h4>
+<div class="paragraph">
+<p>Wollen Sie mehr erfahren?
+Ich biete <a href="http://www.effectivetrainings.de/html/workshops/effective_docker_workshop.php">Consulting / Training</a> für Docker. Schauen Sie doch mal vorbei!</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="links">Links</h4>
+<div class="paragraph">
+<p><a href="https://github.com/effective-docker/docker-healthcheck.git">Sourcen</a></p>
+</div>
+<div class="paragraph">
+<p><a href="http://www.effectivetrainings.de/html/workshops/effective_docker_workshop.php">Effecive Dockerschulung</a>.</p>
+</div>
+<div class="paragraph">
+<p>Schöner NewRelic <a href="https://blog.newrelic.com/2016/08/24/docker-health-check-instruction/">Post</a> zum Thema</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+        </div>
+
+        <!-- End Main Content -->
+
+        <!-- Sidebar -->
+
+        <aside class="col-sm-3 col-sm-offset-1 blog-sidebar">
+
+            <!-- Footer -->
+                           <h5>Posts</h5>
+
+                           <ul id="all-posts" class="posts nav">
+                               
+                               <li><a href="/docker-healthchecks/">Health Checks mit Docker, Spring Boot und Actuator</a></li>
+                               
+                           </ul>
+
+            <div class="sidebar-well">
+
+                <h5>Über mich</h5>
+
+                <p>Ich bin Martin. Freiberuflicher Softwareentwickler / Consultant / Trainer. </p>
+                Verteilte Systeme, Resilient Software und Craftmanship.
+                10+ Jahre Erfahrung, <a
+                    href="http://www.amazon.de/gp/product/B00HXURPHG/ref=as_li_qf_sp_asin_tl?ie=UTF8&camp=1638&creative=6742&creativeASIN=B00HXURPHG&linkCode=as2&tag=splitshadewor-21">Buch-Autor</a>,
+                Git-Trainer, Docker-Trainer, Daddy.
+            </div>
+
+        </aside>
+
+        <!-- End Sidebar -->
+    </div>
+    <!-- End Main Content and Sidebar -->
+
+    <footer class="row">
+        <div class="large-12 columns">
+            <hr/>
+            <div class="row">
+                <div class="large-12 columns">
+                    
+
+<div id="disqus_thread"></div>
+    <script type="text/javascript">
+        /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+        var disqus_shortname = 'perfectlyrandom'; // required: replace example with your forum shortname
+        // var disqus_developer = 1; // Comment out when the site is live
+        var disqus_identifier = "/docker-healthchecks/";
+
+        /* * * DON'T EDIT BELOW THIS LINE * * */
+        (function() {
+            var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    <a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+
+
+<div class="effective_green">
+@2017 www.effectivetrainings.de
+</div>
+
+                </div>
+            </div>
+        </div>
+    </footer>
+     <script>
+        $(document).foundation();
+    </script>
+    <script>
+        $(document).foundation();
+
+        var doc = document.documentElement;
+        doc.setAttribute('data-useragent', navigator.userAgent);
+    </script>
+
+</div>
+<script id="dsq-count-scr" src="//effective-docker-github-io.disqus.com/count.js" async></script>
+</bod
+</html>

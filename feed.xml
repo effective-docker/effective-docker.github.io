@@ -1,1 +1,278 @@
-<?xml version="1.0" encoding="utf-8"?><?xml-stylesheet type="text/xml" href="http://effective-docker.github.io/feed.xslt.xml"?><feed xmlns="http://www.w3.org/2005/Atom"><generator uri="http://jekyllrb.com" version="3.1.6">Jekyll</generator><link href="http://effective-docker.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="http://effective-docker.github.io/" rel="alternate" type="text/html" /><updated>2017-01-03T22:47:26+00:00</updated><id>http://effective-docker.github.io/</id><title type="html">Effectivetrainings Blog</title><subtitle>GTechnologie zum Vorteil</subtitle></feed>
+<?xml version="1.0" encoding="utf-8"?><?xml-stylesheet type="text/xml" href="http://effective-docker.github.io/feed.xslt.xml"?><feed xmlns="http://www.w3.org/2005/Atom"><generator uri="http://jekyllrb.com" version="3.1.6">Jekyll</generator><link href="http://effective-docker.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="http://effective-docker.github.io/" rel="alternate" type="text/html" /><updated>2017-01-03T22:49:10+00:00</updated><id>http://effective-docker.github.io/</id><title type="html">Effectivetrainings Blog</title><subtitle>GTechnologie zum Vorteil</subtitle><entry><title type="html">Docker Health Checks</title><link href="http://effective-docker.github.io/docker-healthchecks/" rel="alternate" type="text/html" title="Docker Health Checks" /><published>2017-01-03T00:00:00+00:00</published><updated>2017-01-03T00:00:00+00:00</updated><id>http://effective-docker.github.io/docker-healthchecks</id><content type="html" xml:base="http://effective-docker.github.io/docker-healthchecks/">&lt;div class=&quot;sect1&quot;&gt;
+&lt;h2 id=&quot;docker-health-checks&quot;&gt;Docker Health Checks&lt;/h2&gt;
+&lt;div class=&quot;sectionbody&quot;&gt;
+
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;sect1&quot;&gt;
+&lt;h2 id=&quot;tldr&quot;&gt;TLDR;&lt;/h2&gt;
+&lt;div class=&quot;sectionbody&quot;&gt;
+&lt;div class=&quot;ulist&quot;&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;Die Sourcen sind unter : &lt;a href=&quot;https://github.com/effective-docker/docker-healthcheck.git&quot; class=&quot;bare&quot;&gt;https://github.com/effective-docker/docker-healthcheck.git&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Seit Docker 1.12 gibt es die Möglichkeit, Health-Checks für Container zu definieren&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Health-Checks sind vor allem zusammen mit Swarm hochinteressant: &lt;a href=&quot;https://docs.docker.com/engine/reference/builder/#/healthcheck&quot; class=&quot;bare&quot;&gt;https://docs.docker.com/engine/reference/builder/#/healthcheck&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;div class=&quot;sect2&quot;&gt;
+&lt;h3 id=&quot;docker-container-health-checks&quot;&gt;Docker Container Health Checks&lt;/h3&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Anwendungen zu deployen ist &lt;em&gt;einfach&lt;/em&gt;, und Docker Container zu starten ist noch &lt;em&gt;einfacher&lt;/em&gt;.
+ Ein einfaches &lt;em&gt;docker run&lt;/em&gt; und schon sind wir live. Das funktioniert
+ auch eine ganze Zeit bis zum ersten Problem - sei es nun eine &lt;em&gt;Lastspitze&lt;/em&gt;, ein &lt;em&gt;Bug&lt;/em&gt;, ein Amoklaufender Prozess oder einfach ein &lt;em&gt;temporäres&lt;/em&gt; Netzwerkproblem.
+ Die Anwendung ist nicht erreichbar, unsere &lt;em&gt;E-Commerce&lt;/em&gt;-Plattform ist für die Kunden nichts weiter als eine &lt;strong&gt;500 - Wir arbeiten an einer Lösung&lt;/strong&gt; und bis wir diese gefunden haben ist die Bestellung meistens schon bei der Konkurrenz gelandet.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Was machen wir also? Wir designen unser System so sicher und &lt;em&gt;gut&lt;/em&gt;, dass einfach keine Fehler auftreten? Das klingt verlockend, ist aber schlichtweg nicht möglich und sogar gefährlich, da wir uns dann in falscher Sicherheit wiegen. Wenn dann doch ein Problem auftritt sind wir nicht dafür gewappnet.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;admonitionblock tip&quot;&gt;
+&lt;table&gt;
+&lt;tr&gt;
+&lt;td class=&quot;icon&quot;&gt;
+&lt;div class=&quot;title&quot;&gt;Tipp&lt;/div&gt;
+&lt;/td&gt;
+&lt;td class=&quot;content&quot;&gt;
+Besser ist es, die Anwendung gleich von Anfang so zu bauen dass Fehler akzeptiert werden und die Anwendung entsprechend darauf reagiert. &lt;strong&gt;Resilient Software&lt;/strong&gt; ist hier das wichtige Stichwort.
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/table&gt;
+&lt;/div&gt;
+&lt;div class=&quot;sect3&quot;&gt;
+&lt;h4 id=&quot;beispielanwendung&quot;&gt;Beispielanwendung&lt;/h4&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Die Anwendung ist eine Spring Boot Anwendung mit &lt;a href=&quot;https://docs.spring.io/spring-boot/docs/current-SNAPSHOT/reference/htmlsingle/#production-ready&quot;&gt;Actuator&lt;/a&gt;.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;admonitionblock important&quot;&gt;
+&lt;table&gt;
+&lt;tr&gt;
+&lt;td class=&quot;icon&quot;&gt;
+&lt;div class=&quot;title&quot;&gt;Wichtig&lt;/div&gt;
+&lt;/td&gt;
+&lt;td class=&quot;content&quot;&gt;
+Spring Boot Actuator bietet eine ganze Menge &lt;em&gt;Endpoints&lt;/em&gt; um den Zustand der Anwendung zu überwachen. Die Anwendung gibt beispielsweise über den Endpunkt &quot;/blog/health&quot; den Status zurück, ob sie &lt;em&gt;healthy&lt;/em&gt; ist. Healthy ist natürlich abhängig davon ob die verwendeten Upstream Services und die Infrastruktur-Komponenten verfügbar sind. Beispielsweise sollte die Anwendung nur &lt;em&gt;healthy&lt;/em&gt; sein, wenn eine verwendete Datenbank vorhanden ist.
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/table&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Als nächstes starten wir die Anwendung.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;highlight&quot;&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;docker run -d --rm -p 8080:8080 effectivetrainings/docker-health&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Nach kurzer Zeit können wir über einen &lt;em&gt;cURL&lt;/em&gt; die &lt;em&gt;Healthyness&lt;/em&gt; der Anwendung abfragen.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;highlight&quot;&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;{
+&quot;status&quot;:&quot;UP&quot;,
+&quot;static&quot;:{&quot;status&quot;:&quot;UP&quot;},
+&quot;diskSpace&quot;: {&quot;status&quot;:&quot;UP&quot;,&quot;total&quot;:67371577344,&quot;free&quot;:61355114496,&quot;threshold&quot;:10485760}
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Hier sehen wir die &lt;em&gt;HealthChecks&lt;/em&gt; der Anwendung. Selbst geschrieben ist der Static-Health-Check, mit dem die Anwendung einfach statisch in einen Healthy- oder Unhealthy-Zustand gesetzt werden kann.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;highlight&quot;&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;curl &quot;http://localhost:8080/environment/health?status=false&quot;
+
+curl &quot;http://localhost:8080/health&quot;
+{
+    &quot;status&quot;: &quot;DOWN&quot;,
+    &quot;static&quot;:{&quot;status&quot;:&quot;DOWN&quot;},
+    &quot;diskSpace&quot;:{&quot;status&quot;:&quot;UP&quot;,&quot;total&quot;:67371577344,&quot;free&quot;:61354893312,threshold&quot;:10485760}
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Das Problem ist, der Container ist per Definition bisher immer noch gesund, obwohl die Anwendung vielleicht nicht mal antwortet. Die &lt;em&gt;Docker Engine&lt;/em&gt; weiß nichts vom Health-Status der Anwendung.
+Der Container selbst hat &lt;em&gt;bis jetzt&lt;/em&gt; noch keinen Health-State.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Damit die Engine auf eine Änderung im Health-Status reagieren kann muss der Container selbst auch wissen, ob er Healthy ist oder nicht. Und genau hier kommen die neuen Health-Checks ins Spiel.&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;sect2&quot;&gt;
+&lt;h3 id=&quot;docker-health-check&quot;&gt;Docker Health Check&lt;/h3&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Health Checks sind essentiell für die Anwendung - sowohl für das Monitoring, den Betrieb als auch für beispielsweise &lt;em&gt;Service Discovery&lt;/em&gt; in verteilten Umgebungen.
+Dabei kann sich ein Health-Check ganz unterschiedlich gestalten, beispielsweise kann es für eine Oracle ein einfaches SQL Statement sein wie &lt;em&gt;select count from dual&lt;/em&gt;, ein HTTP-Status Code eines Actuator-Endpoints oder ein bash-script das nur prüft, ob ein bestimmter Prozess noch lebt.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Für jeden Container kann separat definiert werden, wie ein Health-Check ausgeführt werden kann. Für die Überwachung der Spring-Boot Anwendung beispielsweise bietet sich die Abfrage des &lt;em&gt;Health&lt;/em&gt;-Endpoint mittels &lt;em&gt;cURL&lt;/em&gt; an.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Für den Health-Check sind folgende Parameter für &lt;em&gt;docker run&lt;/em&gt; hinzugekommen. Analog könnten die Health-Checks im Dockerfile definiert werden.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;highlight&quot;&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;--health-cmd string   &lt;b class=&quot;conum&quot;&gt;(1)&lt;/b&gt;
+--health-interval duration  (default 0s) &lt;b class=&quot;conum&quot;&gt;(2)&lt;/b&gt;
+--health-retries int &lt;b class=&quot;conum&quot;&gt;(3)&lt;/b&gt;
+--health-timeout duration (default 0s) &lt;b class=&quot;conum&quot;&gt;(4)&lt;/b&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;colist arabic&quot;&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;Kommando für den Health-Check (Bash, Python..)&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Zeit zwischen Health-Checks, standardmäßig alle 30  sekunden.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Retries bevor ein Container als &lt;em&gt;unhealthy&lt;/em&gt; deklariert wird&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Timeout für den Health-Check&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Ein einfacher Health-Check für die Spring-Boot Anwendung wäre beispielsweise folgender &lt;em&gt;cURL&lt;/em&gt;-Aufruf.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;admonitionblock tip&quot;&gt;
+&lt;table&gt;
+&lt;tr&gt;
+&lt;td class=&quot;icon&quot;&gt;
+&lt;div class=&quot;title&quot;&gt;Tipp&lt;/div&gt;
+&lt;/td&gt;
+&lt;td class=&quot;content&quot;&gt;
+Ein Health-Check liefert einen boolschen Wert - 1 oder 0. 1 &amp;#8658; healthy, 0 &amp;#8658; unhealthy.
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/table&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;highlight&quot;&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;--health-cmd curl -f http://localhost:8080/health | exit 1 &lt;b class=&quot;conum&quot;&gt;(1)&lt;/b&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;colist arabic&quot;&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;Mit &lt;em&gt;curl -f&lt;/em&gt; zwingt curl, den Fehlercode 0 im Falle eines HTTP-Errors zurückzuliefern. Andernfalls liefert &lt;em&gt;exit 1&lt;/em&gt; eine 1 und macht den Service damit healthy.&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Starten wir den Container mit aktiviertem Health-Check.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;highlight&quot;&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;docker run -p 8080:8080 -d --name health-check --rm --health-cmd &quot;curl -f http://localhost:8080/health || exit 1&quot; effectivetrainings/docker-health&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Die Instruktion im Dockerfile wäre analog.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;highlight&quot;&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;HEALTHCHECK CMD curl -f http://localhost:8080/health || exit 1;&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;admonitionblock caution&quot;&gt;
+&lt;table&gt;
+&lt;tr&gt;
+&lt;td class=&quot;icon&quot;&gt;
+&lt;div class=&quot;title&quot;&gt;Achtung&lt;/div&gt;
+&lt;/td&gt;
+&lt;td class=&quot;content&quot;&gt;
+Achtung - der Health-Check wird im Container ausgeführt, nur der interne Container ist also wichtig - &lt;strong&gt;nicht&lt;/strong&gt; der gemappte.
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/table&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Mit &lt;em&gt;docker inspect healthcheck&lt;/em&gt; sehen wir jetzt einen Health-Status für den Container.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;highlight&quot;&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;&quot;Health&quot;: {
+    &quot;Status&quot;: &quot;starting&quot;,
+    &quot;FailingStreak&quot;: 0,
+    &quot;Log&quot;: []
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Parallel ist es recht spannend, sich den Docker Event Stream ausgeben zu lassen.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;highlight&quot;&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;docker events
+
+2017-01-03T22:10:18.137182990+01:00 container exec_start: /bin/sh -c curl -f http://localhost:8080/health 1a2bfc354a3eb75c41e8822620c85b7920ba0ebb9103aa481b090da6ce137037 (image=effectivetrainings/docker-health, name=health-check)
+
+2017-01-03T22:10:18.527115972+01:00 container health_status: healthy 1a2bfc354a3eb75c41e8822620c85b7920ba0ebb9103aa481b090da6ce137037 (image=effectivetrainings/docker-health, name=health-check)&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Was aber passiert jetzt, wenn wir den Container auf &lt;em&gt;unhealthy&lt;/em&gt; setzen? Je nach eingestelltem Interval dauert es jetzt kurz, bis die Engine das Problem entdeckt.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;highlight&quot;&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;curl &quot;localhost:8080/environment/health?status=false&quot;
+
+docker ps
+
+CONTAINER ID        IMAGE                              COMMAND                CREATED             STATUS                     PORTS                    NAMES
+1a2bfc354a3e        effectivetrainings/docker-health   &quot;java -jar /app.jar&quot;   3 minutes ago       Up 3 minutes (unhealthy)   0.0.0.0:8080-&amp;gt;8080/tcp   health-check&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Ein Scheduler wie Docker Swarm könnte jetzt beispielsweise den Container einfach neustarten, &lt;em&gt;in der Hoffnung&lt;/em&gt;, dass das hilft.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;sect3&quot;&gt;
+&lt;h4 id=&quot;fazit&quot;&gt;Fazit&lt;/h4&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Mit Container-Health Checks können relativ einfach Checks implementiert werden, die einen Scheduler unterstützen können die richtigen Entscheidungen zu treffen.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;ulist&quot;&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;Welcher Container wird jetzt neugestartet?&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Wohin soll deployt werden&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Docker Swarm beispielsweise macht sich den Health-Check zu Nutze und routet nur Requests zu Containern, die &lt;em&gt;healthy&lt;/em&gt; sind. Außerdem versucht Swarm, Container neu zu deployen, wenn Sie in den Status &lt;em&gt;unhealthy&lt;/em&gt; wechseln.&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;sect3&quot;&gt;
+&lt;h4 id=&quot;docker-training&quot;&gt;Docker Training&lt;/h4&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Wollen Sie mehr erfahren?
+Ich biete &lt;a href=&quot;http://www.effectivetrainings.de/html/workshops/effective_docker_workshop.php&quot;&gt;Consulting / Training&lt;/a&gt; für Docker. Schauen Sie doch mal vorbei!&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;sect3&quot;&gt;
+&lt;h4 id=&quot;links&quot;&gt;Links&lt;/h4&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;&lt;a href=&quot;https://github.com/effective-docker/docker-healthcheck.git&quot;&gt;Sourcen&lt;/a&gt;&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;&lt;a href=&quot;http://www.effectivetrainings.de/html/workshops/effective_docker_workshop.php&quot;&gt;Effecive Dockerschulung&lt;/a&gt;.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Schöner NewRelic &lt;a href=&quot;https://blog.newrelic.com/2016/08/24/docker-health-check-instruction/&quot;&gt;Post&lt;/a&gt; zum Thema&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;</content><summary type="html">excerpt</summary></entry></feed>
