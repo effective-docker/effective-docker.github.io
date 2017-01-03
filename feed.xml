@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><?xml-stylesheet type="text/xml" href="http://effective-docker.github.io/feed.xslt.xml"?><feed xmlns="http://www.w3.org/2005/Atom"><generator uri="http://jekyllrb.com" version="3.1.6">Jekyll</generator><link href="http://effective-docker.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="http://effective-docker.github.io/" rel="alternate" type="text/html" /><updated>2017-01-03T22:53:31+00:00</updated><id>http://effective-docker.github.io/</id><title type="html">Effectivetrainings Blog</title><subtitle>GTechnologie zum Vorteil</subtitle><entry><title type="html">Docker Health Checks</title><link href="http://effective-docker.github.io/docker-healthchecks/" rel="alternate" type="text/html" title="Docker Health Checks" /><published>2017-01-03T00:00:00+00:00</published><updated>2017-01-03T00:00:00+00:00</updated><id>http://effective-docker.github.io/docker-healthchecks</id><content type="html" xml:base="http://effective-docker.github.io/docker-healthchecks/">&lt;div class=&quot;sect1&quot;&gt;
+<?xml version="1.0" encoding="utf-8"?><?xml-stylesheet type="text/xml" href="http://effective-docker.github.io/feed.xslt.xml"?><feed xmlns="http://www.w3.org/2005/Atom"><generator uri="http://jekyllrb.com" version="3.1.6">Jekyll</generator><link href="http://effective-docker.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="http://effective-docker.github.io/" rel="alternate" type="text/html" /><updated>2017-01-03T23:01:19+00:00</updated><id>http://effective-docker.github.io/</id><title type="html">Effectivetrainings Blog</title><subtitle>GTechnologie zum Vorteil</subtitle><entry><title type="html">Docker Health Checks</title><link href="http://effective-docker.github.io/docker-healthchecks/" rel="alternate" type="text/html" title="Docker Health Checks" /><published>2017-01-03T00:00:00+00:00</published><updated>2017-01-03T00:00:00+00:00</updated><id>http://effective-docker.github.io/docker-healthchecks</id><content type="html" xml:base="http://effective-docker.github.io/docker-healthchecks/">&lt;div class=&quot;sect1&quot;&gt;
 &lt;h2 id=&quot;docker-health-checks&quot;&gt;Docker Health Checks&lt;/h2&gt;
 &lt;div class=&quot;sectionbody&quot;&gt;
 
@@ -27,6 +27,9 @@
  Ein einfaches &lt;em&gt;docker run&lt;/em&gt; und schon sind wir live. Das funktioniert
  auch eine ganze Zeit bis zum ersten Problem - sei es nun eine &lt;em&gt;Lastspitze&lt;/em&gt;, ein &lt;em&gt;Bug&lt;/em&gt;, ein Amoklaufender Prozess oder einfach ein &lt;em&gt;temporäres&lt;/em&gt; Netzwerkproblem.
  Die Anwendung ist nicht erreichbar, unsere &lt;em&gt;E-Commerce&lt;/em&gt;-Plattform ist für die Kunden nichts weiter als eine &lt;strong&gt;500 - Wir arbeiten an einer Lösung&lt;/strong&gt; und bis wir diese gefunden haben ist die Bestellung meistens schon bei der Konkurrenz gelandet.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;&amp;lt;!--more-&amp;#8594;&lt;/p&gt;
 &lt;/div&gt;
 &lt;div class=&quot;paragraph&quot;&gt;
 &lt;p&gt;Was machen wir also? Wir designen unser System so sicher und &lt;em&gt;gut&lt;/em&gt;, dass einfach keine Fehler auftreten? Das klingt verlockend, ist aber schlichtweg nicht möglich und sogar gefährlich, da wir uns dann in falscher Sicherheit wiegen. Wenn dann doch ein Problem auftritt sind wir nicht dafür gewappnet.&lt;/p&gt;
@@ -275,4 +278,31 @@ Ich biete &lt;a href=&quot;http://www.effectivetrainings.de/html/workshops/effec
 &lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;/div&gt;</content><summary type="html">excerpt</summary></entry></feed>
+&lt;/div&gt;</content><summary type="html">Docker Health Checks
+
+
+
+
+
+TLDR;
+
+
+
+
+Die Sourcen sind unter : https://github.com/effective-docker/docker-healthcheck.git
+
+
+Seit Docker 1.12 gibt es die Möglichkeit, Health-Checks für Container zu definieren
+
+
+Health-Checks sind vor allem zusammen mit Swarm hochinteressant: https://docs.docker.com/engine/reference/builder/#/healthcheck
+
+
+
+
+Docker Container Health Checks
+
+Anwendungen zu deployen ist einfach, und Docker Container zu starten ist noch einfacher.
+ Ein einfaches docker run und schon sind wir live. Das funktioniert
+ auch eine ganze Zeit bis zum ersten Problem - sei es nun eine Lastspitze, ein Bug, ein Amoklaufender Prozess oder einfach ein temporäres Netzwerkproblem.
+ Die Anwendung ist nicht erreichbar, unsere E-Commerce-Plattform ist für die Kunden nichts weiter als eine 500 - Wir arbeiten an einer Lösung und bis wir diese gefunden haben ist die Bestellung meistens schon bei der Konkurrenz gelandet.</summary></entry></feed>
