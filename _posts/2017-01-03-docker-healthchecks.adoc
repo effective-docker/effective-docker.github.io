@@ -1,0 +1,188 @@
+---
+layout: default
+title: Docker Health Checks
+shortTitle: Health Checks mit Docker, Spring Boot und Actuator
+documentationExpanded: false
+comments: true
+postsExpanded: true
+categories: docker spring-boot devops
+excerpt_separator: <!--more-->
+example-caption: Beispiel
+caution-caption: Achtung
+root: ../../
+---
+== Docker Health Checks
+:tip-caption: Tipp
+:caution-caption: Achtung
+:question-caption: Frage
+:warning-caption: Warnung
+:important-caption: Wichtig
+
+=== TLDR;
+
+ * Die Sourcen sind unter : https://github.com/effective-docker/docker-healthcheck.git
+ * Seit Docker 1.12 gibt es die Möglichkeit, Health-Checks für Container zu definieren
+ * Health-Checks sind vor allem zusammen mit Swarm hochinteressant: https://docs.docker.com/engine/reference/builder/#/healthcheck
+
+
+=== Docker Container Health Checks
+
+Anwendungen zu deployen ist _einfach_, und Docker Container zu starten ist noch _einfacher_.
+ Ein einfaches _docker run_ und schon sind wir live. Das funktioniert
+ auch eine ganze Zeit bis zum ersten Problem - sei es nun eine _Lastspitze_, ein _Bug_, ein Amoklaufender Prozess oder einfach ein _temporäres_ Netzwerkproblem.
+ Die Anwendung ist nicht erreichbar, unsere _E-Commerce_-Plattform ist für die Kunden nichts weiter als eine *500 - Wir arbeiten an einer Lösung* und bis wir diese gefunden haben ist die Bestellung meistens schon bei der Konkurrenz gelandet.
+
+<!--more-->
+
+Was machen wir also? Wir designen unser System so sicher und _gut_, dass einfach keine Fehler auftreten? Das klingt verlockend, ist aber schlichtweg nicht möglich und sogar gefährlich, da wir uns dann in falscher Sicherheit wiegen. Wenn dann doch ein Problem auftritt sind wir nicht dafür gewappnet.
+
+TIP: Besser ist es, die Anwendung gleich von Anfang so zu bauen dass Fehler akzeptiert werden und die Anwendung entsprechend darauf reagiert. *Resilient Software* ist hier das wichtige Stichwort.
+
+==== Beispielanwendung
+
+Die Anwendung ist eine Spring Boot Anwendung mit https://docs.spring.io/spring-boot/docs/current-SNAPSHOT/reference/htmlsingle/#production-ready[Actuator].
+
+IMPORTANT: Spring Boot Actuator bietet eine ganze Menge _Endpoints_ um den Zustand der Anwendung zu überwachen. Die Anwendung gibt beispielsweise über den Endpunkt "/blog/health" den Status zurück, ob sie _healthy_ ist. Healthy ist natürlich abhängig davon ob die verwendeten Upstream Services und die Infrastruktur-Komponenten verfügbar sind. Beispielsweise sollte die Anwendung nur _healthy_ sein, wenn eine verwendete Datenbank vorhanden ist.
+
+Als nächstes starten wir die Anwendung.
+
+[source, bash]
+----
+docker run -d --rm -p 8080:8080 effectivetrainings/docker-health
+----
+
+Nach kurzer Zeit können wir über einen _cURL_ die _Healthyness_ der Anwendung abfragen.
+
+[source, bash]
+----
+{
+"status":"UP",
+"static":{"status":"UP"},
+"diskSpace": {"status":"UP","total":67371577344,"free":61355114496,"threshold":10485760}
+}
+----
+
+Hier sehen wir die _HealthChecks_ der Anwendung. Selbst geschrieben ist der Static-Health-Check, mit dem die Anwendung einfach statisch in einen Healthy- oder Unhealthy-Zustand gesetzt werden kann.
+
+[source, bash]
+----
+curl "http://localhost:8080/environment/health?status=false"
+
+curl "http://localhost:8080/health"
+{
+    "status": "DOWN",
+    "static":{"status":"DOWN"},
+    "diskSpace":{"status":"UP","total":67371577344,"free":61354893312,threshold":10485760}
+}
+----
+
+Das Problem ist, der Container ist per Definition bisher immer noch gesund, obwohl die Anwendung vielleicht nicht mal antwortet. Die _Docker Engine_ weiß nichts vom Health-Status der Anwendung.
+Der Container selbst hat _bis jetzt_ noch keinen Health-State.
+
+Damit die Engine auf eine Änderung im Health-Status reagieren kann muss der Container selbst auch wissen, ob er Healthy ist oder nicht. Und genau hier kommen die neuen Health-Checks ins Spiel.
+
+=== Docker Health Check
+
+Health Checks sind essentiell für die Anwendung - sowohl für das Monitoring, den Betrieb als auch für beispielsweise _Service Discovery_ in verteilten Umgebungen.
+Dabei kann sich ein Health-Check ganz unterschiedlich gestalten, beispielsweise kann es für eine Oracle ein einfaches SQL Statement sein wie _select count from dual_, ein HTTP-Status Code eines Actuator-Endpoints oder ein bash-script das nur prüft, ob ein bestimmter Prozess noch lebt.
+
+Für jeden Container kann separat definiert werden, wie ein Health-Check ausgeführt werden kann. Für die Überwachung der Spring-Boot Anwendung beispielsweise bietet sich die Abfrage des _Health_-Endpoint mittels _cURL_ an.
+
+Für den Health-Check sind folgende Parameter für _docker run_ hinzugekommen. Analog könnten die Health-Checks im Dockerfile definiert werden.
+
+[source, bash]
+----
+--health-cmd string   <1>
+--health-interval duration  (default 0s) <2>
+--health-retries int <3>
+--health-timeout duration (default 0s) <4>
+----
+<1> Kommando für den Health-Check (Bash, Python..)
+<2> Zeit zwischen Health-Checks, standardmäßig alle 30  sekunden.
+<3> Retries bevor ein Container als _unhealthy_ deklariert wird
+<4> Timeout für den Health-Check
+
+Ein einfacher Health-Check für die Spring-Boot Anwendung wäre beispielsweise folgender _cURL_-Aufruf.
+
+TIP: Ein Health-Check liefert einen boolschen Wert - 1 oder 0. 1 => healthy, 0 => unhealthy.
+
+[source, bash]
+----
+--health-cmd curl -f http://localhost:8080/health | exit 1 <1>
+----
+<1> Mit _curl -f_ zwingt curl, den Fehlercode 0 im Falle eines HTTP-Errors zurückzuliefern. Andernfalls liefert _exit 1_ eine 1 und macht den Service damit healthy.
+
+Starten wir den Container mit aktiviertem Health-Check.
+
+[source, bash]
+----
+docker run -p 8080:8080 -d --name health-check --rm --health-cmd "curl -f http://localhost:8080/health || exit 1" effectivetrainings/docker-health
+----
+
+Die Instruktion im Dockerfile wäre analog.
+
+[source, bash]
+----
+HEALTHCHECK CMD curl -f http://localhost:8080/health || exit 1;
+----
+
+CAUTION: Achtung - der Health-Check wird im Container ausgeführt, nur der interne Container ist also wichtig - *nicht* der gemappte.
+
+Mit _docker inspect healthcheck_ sehen wir jetzt einen Health-Status für den Container.
+
+[source, bash]
+----
+"Health": {
+    "Status": "starting",
+    "FailingStreak": 0,
+    "Log": []
+}
+----
+
+Parallel ist es recht spannend, sich den Docker Event Stream ausgeben zu lassen.
+
+[source, bash]
+----
+docker events
+
+2017-01-03T22:10:18.137182990+01:00 container exec_start: /bin/sh -c curl -f http://localhost:8080/health 1a2bfc354a3eb75c41e8822620c85b7920ba0ebb9103aa481b090da6ce137037 (image=effectivetrainings/docker-health, name=health-check)
+
+2017-01-03T22:10:18.527115972+01:00 container health_status: healthy 1a2bfc354a3eb75c41e8822620c85b7920ba0ebb9103aa481b090da6ce137037 (image=effectivetrainings/docker-health, name=health-check)
+----
+
+Was aber passiert jetzt, wenn wir den Container auf _unhealthy_ setzen? Je nach eingestelltem Interval dauert es jetzt kurz, bis die Engine das Problem entdeckt.
+
+[source, bash]
+----
+curl "localhost:8080/environment/health?status=false"
+
+docker ps
+
+CONTAINER ID        IMAGE                              COMMAND                CREATED             STATUS                     PORTS                    NAMES
+1a2bfc354a3e        effectivetrainings/docker-health   "java -jar /app.jar"   3 minutes ago       Up 3 minutes (unhealthy)   0.0.0.0:8080->8080/tcp   health-check
+----
+
+Ein Scheduler wie Docker Swarm könnte jetzt beispielsweise den Container einfach neustarten, _in der Hoffnung_, dass das hilft.
+
+==== Fazit
+
+Mit Container-Health Checks können relativ einfach Checks implementiert werden, die einen Scheduler unterstützen können die richtigen Entscheidungen zu treffen.
+
+* Welcher Container wird jetzt neugestartet?
+* Wohin soll deployt werden
+
+
+Docker Swarm beispielsweise macht sich den Health-Check zu Nutze und routet nur Requests zu Containern, die _healthy_ sind. Außerdem versucht Swarm, Container neu zu deployen, wenn Sie in den Status _unhealthy_ wechseln.
+
+==== Docker Training
+
+Wollen Sie mehr erfahren?
+Ich biete http://www.effectivetrainings.de/html/workshops/effective_docker_workshop.php[Consulting / Training] für Docker. Schauen Sie doch mal vorbei!
+
+==== Links
+https://github.com/effective-docker/docker-healthcheck.git[Sourcen]
+
+http://www.effectivetrainings.de/html/workshops/effective_docker_workshop.php[Effecive Dockerschulung].
+
+Schöner NewRelic https://blog.newrelic.com/2016/08/24/docker-health-check-instruction/[Post] zum Thema
+

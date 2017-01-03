@@ -38,6 +38,15 @@
         <!-- Main Blog Content -->
         <div class="col-sm-8 blog-main" role="content">
 
+            <ul>
+            {% for post in site.posts %}
+                <li>
+                  <a href="{{ post.url }}">{{ post.title }}</a>
+                    {{ post.excerpt | remove: '<p>' | remove: '</p>' }}
+                </li>
+              {% endfor %}
+            </ul>
+
             {{ content }}
 
         </div>
@@ -48,7 +57,17 @@
 
         <aside class="col-sm-3 col-sm-offset-1 blog-sidebar">
 
+            <!-- Footer -->
+            <h5>Posts</h5>
+
+            <ul id="all-posts" class="posts nav">
+                {% for post in site.posts %}
+                <li><a href="{{ post.url }}">{{ post.shortTitle }}</a></li>
+                {% endfor %}
+            </ul>
+
             <div class="sidebar-well">
+
                 <h5>Über mich</h5>
 
                 <p>Ich bin Martin. Freiberuflicher Softwareentwickler / Consultant / Trainer. </p>
@@ -64,15 +83,6 @@
     </div>
     <!-- End Main Content and Sidebar -->
 
-
-    <!-- Footer -->
-
-    <ul id="all-posts" class="posts nav">
-        {% for post in site.posts %}
-        <li><a href="{{ post.url }}">{{ post.shortTitle }}</a></li>
-        {% endfor %}
-    </ul>
-
     <footer class="row">
         <div class="large-12 columns">
             <hr/>
@@ -83,8 +93,7 @@
             </div>
         </div>
     </footer>
-
-     <script>
+    <script>
         $(document).foundation();
     </script>
     <script>
@@ -95,5 +104,6 @@
     </script>
 
 </div>
-</body>
+<script id="dsq-count-scr" src="//effective-docker-github-io.disqus.com/count.js" async></script>
+</bod
 </html>

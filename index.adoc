@@ -7,9 +7,3 @@ postsExpanded: false
 ---
 
 = Der Effective Docker Blog!
-
-Der Effective Docker Blog - Docker aus der Praxis für die Praxis - in diesem Blog finden Sie _hoffentlich_  interessante Artikel zum Thema Docker, die aus meiner täglichen Arbeit mit _Docker_ entstanden sind.
-
-Sollten Sie mehr wissen wollen könnte das http://www.effectivetrainings.de/html/workshops/effective_docker_workshop.php[*Effective Docker Training*] für Sie interessant sein.
-
-
