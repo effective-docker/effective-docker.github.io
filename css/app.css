@@ -23,8 +23,13 @@
   margin: 20px 0px 10px 0px;
 }
 
-.admonitionblock > > .title {
+.admonitionblock .title {
   margin-right: 15px;
+  padding: 15px;
+  text-align: center;
+  color: #6aad2e;
+  font-weight: bold;
+  font-size: 1.5em;
 }
 
 .effective_green {
@@ -1527,7 +1532,7 @@ h1, h2, h3, h4, h5, h6,
   font-family: inherit;
   font-weight: 500;
   line-height: 1.1;
-  color: inherit;
+  color: #6aad2e;
 }
 h1 small,
 h1 .small, h2 small,
