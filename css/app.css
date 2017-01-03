@@ -57,6 +57,16 @@
   color: white;
 }
 
+strong {
+  background: #6aad2e;
+  border-radius: 2px;
+  color: white;
+  padding-left: 4px;
+  padding-right: 4px;
+  padding-top: 2px;
+  padding-bottom: 2px;
+}
+
 /*!
  * Bootstrap v3.3.6 (http://getbootstrap.com)
  * Copyright 2011-2015 Twitter, Inc.

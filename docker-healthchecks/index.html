@@ -301,7 +301,7 @@ Dabei kann sich ein Health-Check ganz unterschiedlich gestalten, beispielsweise 
 <div class="title">Tipp</div>
 </td>
 <td class="content">
-Ein Health-Check liefert einen boolschen Wert - 1 oder 0. 1 &#8658; healthy, 0 &#8658; unhealthy.
+Ein Health-Check liefert einen boolschen Wert - 0 oder 1. 0 &#8658; healthy, 1 &#8658; unhealthy.
 </td>
 </tr>
 </table>
@@ -314,7 +314,7 @@ Ein Health-Check liefert einen boolschen Wert - 1 oder 0. 1 &#8658; healthy, 0 &
 <div class="colist arabic">
 <ol>
 <li>
-<p>Mit <em>curl -f</em> zwingt curl, den Fehlercode 0 im Falle eines HTTP-Errors zurückzuliefern. Andernfalls liefert <em>exit 1</em> eine 1 und macht den Service damit healthy.</p>
+<p>Mit <em>curl -f</em> zwingt curl, den Fehlercode 1 im Falle eines HTTP-Errors zurückzuliefern, andernfalls den Code 0.</p>
 </li>
 </ol>
 </div>
