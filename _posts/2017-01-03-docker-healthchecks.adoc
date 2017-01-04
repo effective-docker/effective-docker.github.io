@@ -24,8 +24,6 @@ root: ../../
  * Seit Docker 1.12 gibt es die Möglichkeit, Health-Checks für Container zu definieren
  * Health-Checks sind vor allem zusammen mit Swarm hochinteressant: https://docs.docker.com/engine/reference/builder/#/healthcheck
 
-
-
 '''
 
 === Docker Container Health Checks
