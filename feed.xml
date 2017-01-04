@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><?xml-stylesheet type="text/xml" href="http://effective-docker.github.io/feed.xslt.xml"?><feed xmlns="http://www.w3.org/2005/Atom"><generator uri="http://jekyllrb.com" version="3.1.6">Jekyll</generator><link href="http://effective-docker.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="http://effective-docker.github.io/" rel="alternate" type="text/html" /><updated>2017-01-04T21:22:12+00:00</updated><id>http://effective-docker.github.io/</id><title type="html">Effectivetrainings Blog</title><subtitle>GTechnologie zum Vorteil</subtitle><entry><title type="html">Docker Swarm Health Checks</title><link href="http://effective-docker.github.io/docker-swarm-health-checks/" rel="alternate" type="text/html" title="Docker Swarm Health Checks" /><published>2017-01-04T00:00:00+00:00</published><updated>2017-01-04T00:00:00+00:00</updated><id>http://effective-docker.github.io/docker-swarm-health-checks</id><content type="html" xml:base="http://effective-docker.github.io/docker-swarm-health-checks/">&lt;div class=&quot;sect1&quot;&gt;
+<?xml version="1.0" encoding="utf-8"?><?xml-stylesheet type="text/xml" href="http://effective-docker.github.io/feed.xslt.xml"?><feed xmlns="http://www.w3.org/2005/Atom"><generator uri="http://jekyllrb.com" version="3.1.6">Jekyll</generator><link href="http://effective-docker.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="http://effective-docker.github.io/" rel="alternate" type="text/html" /><updated>2017-01-04T21:25:47+00:00</updated><id>http://effective-docker.github.io/</id><title type="html">Effectivetrainings Blog</title><subtitle>GTechnologie zum Vorteil</subtitle><entry><title type="html">Docker Swarm Health Checks</title><link href="http://effective-docker.github.io/docker-swarm-health-checks/" rel="alternate" type="text/html" title="Docker Swarm Health Checks" /><published>2017-01-04T00:00:00+00:00</published><updated>2017-01-04T00:00:00+00:00</updated><id>http://effective-docker.github.io/docker-swarm-health-checks</id><content type="html" xml:base="http://effective-docker.github.io/docker-swarm-health-checks/">&lt;div class=&quot;sect1&quot;&gt;
 &lt;h2 id=&quot;docker-swarm-mode-health-checks&quot;&gt;Docker Swarm Mode Health Checks&lt;/h2&gt;
 &lt;div class=&quot;sectionbody&quot;&gt;
 &lt;div class=&quot;sect2&quot;&gt;
@@ -71,9 +71,10 @@ Wenn wir die Maschinen mit &lt;em&gt;docker-machine&lt;/em&gt; erstellen sind be
 &lt;/div&gt;
 &lt;div class=&quot;listingblock&quot;&gt;
 &lt;div class=&quot;content&quot;&gt;
-&lt;pre class=&quot;highlight&quot;&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;swarm-node-1      -        virtualbox   Running   tcp://192.168.99.101:2376           v1.13.0-rc4
-swarm-node-2      -        virtualbox   Running   tcp://192.168.99.102:2376           v1.13.0-rc4
-swarm-node-3      -        virtualbox   Running   tcp://192.168.99.103:2376           v1.13.0-rc4&lt;/code&gt;&lt;/pre&gt;
+&lt;pre class=&quot;highlight&quot;&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;docker-machine ls
+swarm-node-1      -        virtualbox   Running   tcp://192.168.99.101:2376
+swarm-node-2      -        virtualbox   Running   tcp://192.168.99.102:2376
+swarm-node-3      -        virtualbox   Running   tcp://192.168.99.103:2376&lt;/code&gt;&lt;/pre&gt;
 &lt;/div&gt;
 &lt;/div&gt;
 &lt;div class=&quot;paragraph&quot;&gt;
