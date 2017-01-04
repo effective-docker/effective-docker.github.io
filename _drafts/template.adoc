@@ -1,0 +1,52 @@
+---
+layout: post
+title: <Title>
+shortTitle: <Subtitle>
+documentationExpanded: false
+comments: true
+postsExpanded: true
+categories: <categories>
+excerpt_separator: // excerpt
+example-caption: Beispiel
+caution-caption: Achtung
+root: ../../
+---
+== Docker Health Checks
+:tip-caption: Tipp
+:caution-caption: Achtung
+:question-caption: Frage
+:warning-caption: Warnung
+:important-caption: Wichtig
+
+=== TLDR;
+
+'''
+
+=== Docker Container Health Checks
+
+// excerpt
+
+'''
+
+=== Beispielanwendung
+
+
+'''
+
+=== Docker Health Check
+
+'''
+
+==== Fazit
+
+'''
+
+==== Links
+
+'''
+
+==== Docker Training
+
+*Wollen Sie mehr erfahren?*
+Ich biete http://www.effectivetrainings.de/html/workshops/effective_docker_workshop.php[Consulting / Training] für Docker. Schauen Sie doch mal vorbei!
+
