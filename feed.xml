@@ -1,4 +1,277 @@
-<?xml version="1.0" encoding="utf-8"?><?xml-stylesheet type="text/xml" href="http://effective-docker.github.io/feed.xslt.xml"?><feed xmlns="http://www.w3.org/2005/Atom"><generator uri="http://jekyllrb.com" version="3.1.6">Jekyll</generator><link href="http://effective-docker.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="http://effective-docker.github.io/" rel="alternate" type="text/html" /><updated>2017-01-03T23:29:59+00:00</updated><id>http://effective-docker.github.io/</id><title type="html">Effectivetrainings Blog</title><subtitle>GTechnologie zum Vorteil</subtitle><entry><title type="html">Docker Health Checks</title><link href="http://effective-docker.github.io/docker-healthchecks/" rel="alternate" type="text/html" title="Docker Health Checks" /><published>2017-01-03T00:00:00+00:00</published><updated>2017-01-03T00:00:00+00:00</updated><id>http://effective-docker.github.io/docker-healthchecks</id><content type="html" xml:base="http://effective-docker.github.io/docker-healthchecks/">&lt;div class=&quot;sect1&quot;&gt;
+<?xml version="1.0" encoding="utf-8"?><?xml-stylesheet type="text/xml" href="http://effective-docker.github.io/feed.xslt.xml"?><feed xmlns="http://www.w3.org/2005/Atom"><generator uri="http://jekyllrb.com" version="3.1.6">Jekyll</generator><link href="http://effective-docker.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="http://effective-docker.github.io/" rel="alternate" type="text/html" /><updated>2017-01-04T21:20:31+00:00</updated><id>http://effective-docker.github.io/</id><title type="html">Effectivetrainings Blog</title><subtitle>GTechnologie zum Vorteil</subtitle><entry><title type="html">Docker Swarm Health Checks</title><link href="http://effective-docker.github.io/docker-swarm-health-checks/" rel="alternate" type="text/html" title="Docker Swarm Health Checks" /><published>2017-01-04T00:00:00+00:00</published><updated>2017-01-04T00:00:00+00:00</updated><id>http://effective-docker.github.io/docker-swarm-health-checks</id><content type="html" xml:base="http://effective-docker.github.io/docker-swarm-health-checks/">&lt;div class=&quot;sect1&quot;&gt;
+&lt;h2 id=&quot;docker-swarm-mode-health-checks&quot;&gt;Docker Swarm Mode Health Checks&lt;/h2&gt;
+&lt;div class=&quot;sectionbody&quot;&gt;
+&lt;div class=&quot;sect2&quot;&gt;
+&lt;h3 id=&quot;tldr&quot;&gt;TLDR;&lt;/h3&gt;
+&lt;div class=&quot;ulist&quot;&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;Die Sourcen sind unter : &lt;a href=&quot;https://github.com/effective-docker/docker-healthcheck.git&quot; class=&quot;bare&quot;&gt;https://github.com/effective-docker/docker-healthcheck.git&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Swarm Scheduler arbeitet mit den Container Health Checks&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Nur &lt;em&gt;healthy&lt;/em&gt; Container werden geroutet.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Nach drei fehlgeschlagenen Health-Checks wird ein Container neu gestartet (ggf. auch auf einem anderen Knoten)&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;hr&gt;
+&lt;/div&gt;
+&lt;div class=&quot;sect2&quot;&gt;
+&lt;h3 id=&quot;docker-swarm-mode&quot;&gt;Docker Swarm Mode&lt;/h3&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Im &lt;a href=&quot;https://effective-docker.github.io/docker-healthchecks/&quot;&gt;letzten Eintrag&lt;/a&gt; haben wir uns mit &lt;em&gt;Health Checks&lt;/em&gt; in Containern beschäftigt. Das alleine ist schon eine sehr wichtige Funktionalität, entwickelt ihr Potential allerdings erst in Zusammenarbeit mit einem Scheduler der das aktiv unterstützt. In diesem Artikel konzentrieren wir uns auf &lt;strong&gt;Docker Swarm im Swarm Mode (ab 1.12)&lt;/strong&gt;&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Swarm Mode ist das &lt;em&gt;neue&lt;/em&gt; Swarm integriert in die Docker Engine - &lt;em&gt;nicht zu verwechseln&lt;/em&gt; mit &lt;a href=&quot;https://docs.docker.com/swarm/overview/&quot;&gt;Docker Swarm (Standalone)&lt;/a&gt;, was vor 1.12 aktuell war.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Im folgenden arbeiten wir der Einfachheit halber mit VirtualBox und Docker-Machine.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Zunächst setzen erstellen wir uns einen Stack mit 3 Nodes.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;admonitionblock tip&quot;&gt;
+&lt;table&gt;
+&lt;tr&gt;
+&lt;td class=&quot;icon&quot;&gt;
+&lt;div class=&quot;title&quot;&gt;Tipp&lt;/div&gt;
+&lt;/td&gt;
+&lt;td class=&quot;content&quot;&gt;
+Die Anzahl an Nodes im Schwarm sollte nach Möglichkeit ungerade sein, damit man einfache Mehrheiten bilden kann.
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/table&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;highlight&quot;&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;for i in {1..3}; do
+    docker-machine create --driver=virtualbox swarm-node-$i
+done&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;admonitionblock tip&quot;&gt;
+&lt;table&gt;
+&lt;tr&gt;
+&lt;td class=&quot;icon&quot;&gt;
+&lt;div class=&quot;title&quot;&gt;Tipp&lt;/div&gt;
+&lt;/td&gt;
+&lt;td class=&quot;content&quot;&gt;
+Wenn wir die Maschinen mit &lt;em&gt;docker-machine&lt;/em&gt; erstellen sind bereits alle Zertifikate richtig konfiguriert.
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/table&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Zunächst prüfen wir, ob die Knoten korrekt erstellt und gestartet sind.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;highlight&quot;&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;swarm-node-1      -        virtualbox   Running   tcp://192.168.99.101:2376           v1.13.0-rc4
+swarm-node-2      -        virtualbox   Running   tcp://192.168.99.102:2376           v1.13.0-rc4
+swarm-node-3      -        virtualbox   Running   tcp://192.168.99.103:2376           v1.13.0-rc4&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Mit den einzelnen Knoten können wir uns jetzt über die &lt;em&gt;Docker Remote&lt;/em&gt;-API verbinden.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Wir machen die Knoten 1 und 2 zu &lt;em&gt;Swarm-Managern&lt;/em&gt;.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;highlight&quot;&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;#connect to node 1
+eval $(docker-machine env swarm-node-1)
+
+docker swarm init --advertise-addr $(docker-machine ip swarm-node-1)
+
+# connect to node 2
+eval $(docker-machine env swarm-node-2) &lt;b class=&quot;conum&quot;&gt;(1)&lt;/b&gt;
+
+
+# join swarm as worker
+docker swarm join --token &amp;lt;token&amp;gt; $(docker-machine ip swarm-node-1):2377 &lt;b class=&quot;conum&quot;&gt;(2)&lt;/b&gt;
+
+# connect to node 3
+eval $(docker-machine env swarm-node-3)
+
+# join swarm as worker
+docker swarm join --token &amp;lt;token&amp;gt; $(docker-machine ip swarm-node-1):2377 &lt;b class=&quot;conum&quot;&gt;(3)&lt;/b&gt;
+
+# promote node-2
+docker node promote swarm-node-2
+Node swarm-node-2 promoted to a manager in the swarm. &lt;b class=&quot;conum&quot;&gt;(4)&lt;/b&gt;
+
+
+# status
+docker node ls
+ID                           HOSTNAME      STATUS  AVAILABILITY  MANAGER STATUS
+kr5m52gdhx3ky7enck5ifjd27    swarm-node-2  Ready   Active        Reachable
+qb2llmor6n5hogv3ql1pudl7d *  swarm-node-1  Ready   Active        Leader
+wr708u31k6uxogn0u66ykh61n    swarm-node-3  Ready   Active&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;hr&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Die Kommunikation im Swarm muss immer über einen Manager geschehen, denn nur Manager haben die Befugnis &lt;em&gt;Entscheidungen&lt;/em&gt; treffen.&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;sect2&quot;&gt;
+&lt;h3 id=&quot;beispielanwendung&quot;&gt;Beispielanwendung&lt;/h3&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Wir arbeiten erneut mit der &lt;em&gt;einfachen&lt;/em&gt; Health-Check Spring Boot Applikation aus dem letzten Artikel.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Zusätzlich deployen wir den &lt;a href=&quot;https://github.com/ManoMarks/docker-swarm-visualizer&quot;&gt;Swarm-Visualizer&lt;/a&gt; um den Schwarm zu sichtbar zu machen.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;highlight&quot;&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;docker service create \
+  --name=viz \
+  --publish=9000:8080/tcp \
+  --constraint=node.role==manager \ &lt;b class=&quot;conum&quot;&gt;(1)&lt;/b&gt;
+  --mount=type=bind,src=/var/run/docker.sock,dst=/var/run/docker.sock \
+  manomarks/visualizer&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;colist arabic&quot;&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;Der Visualizer &lt;strong&gt;muss&lt;/strong&gt; auf einem Manager laufen&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Prüfen Sie mit &lt;em&gt;docker service ls&lt;/em&gt; wann der Visualizer bereit ist.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;highlight&quot;&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;docker service ls
+mbkr330h65kh  viz   replicated  0/1       manomarks/visualizer:latest&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;imageblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;img src=&quot;/assets/images/swarm_health/swarm_visualizer.png&quot; alt=&quot;Swarm Visualizer&quot; width=&quot;600&quot;&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Deployen Sie anschließend die Health-Applikation als Service mit zwei Replicas.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;highlight&quot;&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;#connect to manager
+eval $(docker-machine env swarm-node-1)
+
+docker service create --health-cmd &quot;curl -f http://localhost:8080/health || exit 1&quot; --name health --replicas 2 -p 8080:8080 effectivetrainings/docker-health
+
+#status
+docker service ps viz
+ID         NAME   IMAGE                        NODE          DESIRED STATE CURRENT STATE
+ymzuujcd6awr  viz.1  manomarks/visualizer:latest  swarm-node-1  Running        Preparing&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;imageblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;img src=&quot;/assets/images/swarm_health/swarm_replicas.png&quot; alt=&quot;Swarm Replicas&quot; width=&quot;600&quot;&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;hr&gt;
+&lt;/div&gt;
+&lt;div class=&quot;sect2&quot;&gt;
+&lt;h3 id=&quot;docker-health-check&quot;&gt;Docker Health Check&lt;/h3&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Nachdem die Services deployt sind machen wir uns erneut die Möglichkeit zunutze, den Health-Status der Anwendung manuell zu setzen. Wir setzen eine Service-Instanz auf &lt;em&gt;unhealthy&lt;/em&gt;.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;listingblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;pre class=&quot;highlight&quot;&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;curl $(docker-machine ip node-3):8080/environment/health?status=false&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;admonitionblock caution&quot;&gt;
+&lt;table&gt;
+&lt;tr&gt;
+&lt;td class=&quot;icon&quot;&gt;
+&lt;div class=&quot;title&quot;&gt;Achtung&lt;/div&gt;
+&lt;/td&gt;
+&lt;td class=&quot;content&quot;&gt;
+Achtung, wir setzen hier die Umgebungsvariablen von &lt;strong&gt;Node-3&lt;/strong&gt;. Es ist aber nicht definiert, welcher Container wirklich angesprochen wird. Das entscheidet Docker intern über den DNS-Server.
+&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/table&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Docker Swarm überwacht ständig den Status der Services / Tasks im Cluster und re-scheduled Container wenn nötig.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Standardmäßig versucht Swarm &lt;strong&gt;dreimal&lt;/strong&gt; den Health-Check durchzuführen, nach dem dritten gescheiterten Versuch wird der Container neu gestartet.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;videoblock&quot;&gt;
+&lt;div class=&quot;content&quot;&gt;
+&lt;iframe src=&quot;https://www.youtube.com/embed/H9OEvQULVnI?rel=0&quot; frameborder=&quot;0&quot; allowfullscreen&gt;&lt;/iframe&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Zusätzlich werden nur Container geroutet, die Healthy sind. Sobald ein Container &lt;em&gt;unhealthy&lt;/em&gt; ist und der Manager dies erkennt wird er nicht mehr angesprochen.&lt;/p&gt;
+&lt;/div&gt;
+&lt;hr&gt;
+&lt;div class=&quot;sect3&quot;&gt;
+&lt;h4 id=&quot;fazit&quot;&gt;Fazit&lt;/h4&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;Speziell im Swarm machen die Container Health Checks Sinn, da Swarm Container nicht routet, die &lt;em&gt;unhealthy&lt;/em&gt; sind.
+Die Verwendung ist &lt;em&gt;wie immer&lt;/em&gt; denkbar einfach und funktioniert erstaunlich stabil und gut.&lt;/p&gt;
+&lt;/div&gt;
+&lt;hr&gt;
+&lt;/div&gt;
+&lt;div class=&quot;sect3&quot;&gt;
+&lt;h4 id=&quot;links&quot;&gt;Links&lt;/h4&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;&lt;a href=&quot;https://github.com/effective-docker/docker-healthcheck.git&quot;&gt;Sourcen&lt;/a&gt;&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;&lt;a href=&quot;https://docs.docker.com/engine/swarm/&quot;&gt;swarm mode&lt;/a&gt;&lt;/p&gt;
+&lt;/div&gt;
+&lt;hr&gt;
+&lt;/div&gt;
+&lt;div class=&quot;sect3&quot;&gt;
+&lt;h4 id=&quot;docker-training&quot;&gt;Docker Training&lt;/h4&gt;
+&lt;div class=&quot;paragraph&quot;&gt;
+&lt;p&gt;&lt;strong&gt;Wollen Sie mehr erfahren?&lt;/strong&gt;
+Ich biete &lt;a href=&quot;http://www.effectivetrainings.de/html/workshops/effective_docker_workshop.php&quot;&gt;Consulting / Training&lt;/a&gt; für Docker. Schauen Sie doch mal vorbei!&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;</content><summary type="html">Docker Swarm Mode Health Checks
+
+
+TLDR;
+
+
+
+Die Sourcen sind unter : https://github.com/effective-docker/docker-healthcheck.git
+
+
+Swarm Scheduler arbeitet mit den Container Health Checks
+
+
+Nur healthy Container werden geroutet.
+
+
+Nach drei fehlgeschlagenen Health-Checks wird ein Container neu gestartet (ggf. auch auf einem anderen Knoten)
+
+
+
+
+
+
+Docker Swarm Mode
+
+Im letzten Eintrag haben wir uns mit Health Checks in Containern beschäftigt. Das alleine ist schon eine sehr wichtige Funktionalität, entwickelt ihr Potential allerdings erst in Zusammenarbeit mit einem Scheduler der das aktiv unterstützt. In diesem Artikel konzentrieren wir uns auf Docker Swarm im Swarm Mode (ab 1.12)</summary></entry><entry><title type="html">Docker Health Checks</title><link href="http://effective-docker.github.io/docker-healthchecks/" rel="alternate" type="text/html" title="Docker Health Checks" /><published>2017-01-03T00:00:00+00:00</published><updated>2017-01-03T00:00:00+00:00</updated><id>http://effective-docker.github.io/docker-healthchecks</id><content type="html" xml:base="http://effective-docker.github.io/docker-healthchecks/">&lt;div class=&quot;sect1&quot;&gt;
 &lt;h2 id=&quot;docker-health-checks&quot;&gt;Docker Health Checks&lt;/h2&gt;
 &lt;div class=&quot;sectionbody&quot;&gt;
 &lt;div class=&quot;sect2&quot;&gt;

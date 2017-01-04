@@ -5,7 +5,7 @@
 <head>
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Docker Health Checks</title>
+    <title>Docker Swarm Health Checks</title>
 
 
     <meta name="description"
@@ -153,7 +153,7 @@
         <!-- Main Blog Content -->
         <div class="col-sm-8 blog-main" role="content">
             <div class="sect1">
-<h2 id="docker-health-checks">Docker Health Checks</h2>
+<h2 id="docker-swarm-mode-health-checks">Docker Swarm Mode Health Checks</h2>
 <div class="sectionbody">
 <div class="sect2">
 <h3 id="tldr">TLDR;</h3>
@@ -163,25 +163,31 @@
 <p>Die Sourcen sind unter : <a href="https://github.com/effective-docker/docker-healthcheck.git" class="bare">https://github.com/effective-docker/docker-healthcheck.git</a></p>
 </li>
 <li>
-<p>Seit Docker 1.12 gibt es die Möglichkeit, Health-Checks für Container zu definieren</p>
+<p>Swarm Scheduler arbeitet mit den Container Health Checks</p>
 </li>
 <li>
-<p>Health-Checks sind vor allem zusammen mit Swarm hochinteressant: <a href="https://docs.docker.com/engine/reference/builder/#/healthcheck" class="bare">https://docs.docker.com/engine/reference/builder/#/healthcheck</a></p>
+<p>Nur <em>healthy</em> Container werden geroutet.</p>
+</li>
+<li>
+<p>Nach drei fehlgeschlagenen Health-Checks wird ein Container neu gestartet (ggf. auch auf einem anderen Knoten)</p>
 </li>
 </ul>
 </div>
 <hr>
 </div>
 <div class="sect2">
-<h3 id="docker-container-health-checks">Docker Container Health Checks</h3>
+<h3 id="docker-swarm-mode">Docker Swarm Mode</h3>
 <div class="paragraph">
-<p>Anwendungen zu deployen ist <em>einfach</em>, und Docker Container zu starten ist noch <em>einfacher</em>.
- Ein einfaches <em>docker run</em> und schon sind wir live. Das funktioniert
- auch eine ganze Zeit bis zum ersten Problem - sei es nun eine <em>Lastspitze</em>, ein <em>Bug</em>, ein Amoklaufender Prozess oder einfach ein <em>temporäres</em> Netzwerkproblem.
- Die Anwendung ist nicht erreichbar, unsere <em>E-Commerce</em>-Plattform ist für die Kunden nichts weiter als eine <em>500 - Wir arbeiten an einer Lösung</em> und bis wir diese gefunden haben ist die Bestellung meistens schon bei der Konkurrenz gelandet.</p>
+<p>Im <a href="https://effective-docker.github.io/docker-healthchecks/">letzten Eintrag</a> haben wir uns mit <em>Health Checks</em> in Containern beschäftigt. Das alleine ist schon eine sehr wichtige Funktionalität, entwickelt ihr Potential allerdings erst in Zusammenarbeit mit einem Scheduler der das aktiv unterstützt. In diesem Artikel konzentrieren wir uns auf <strong>Docker Swarm im Swarm Mode (ab 1.12)</strong></p>
 </div>
 <div class="paragraph">
-<p>Was machen wir also? Wir designen unser System so sicher und <em>gut</em>, dass einfach keine Fehler auftreten? Das klingt verlockend, ist aber schlichtweg nicht möglich und sogar gefährlich, da wir uns dann in falscher Sicherheit wiegen. Wenn dann doch ein Problem auftritt sind wir nicht dafür gewappnet.</p>
+<p>Swarm Mode ist das <em>neue</em> Swarm integriert in die Docker Engine - <em>nicht zu verwechseln</em> mit <a href="https://docs.docker.com/swarm/overview/">Docker Swarm (Standalone)</a>, was vor 1.12 aktuell war.</p>
+</div>
+<div class="paragraph">
+<p>Im folgenden arbeiten wir der Einfachheit halber mit VirtualBox und Docker-Machine.</p>
+</div>
+<div class="paragraph">
+<p>Zunächst setzen erstellen wir uns einen Stack mit 3 Nodes.</p>
 </div>
 <div class="admonitionblock tip">
 <table>
@@ -190,151 +196,154 @@
 <div class="title">Tipp</div>
 </td>
 <td class="content">
-Besser ist es, die Anwendung gleich von Anfang so zu bauen dass Fehler akzeptiert werden und die Anwendung entsprechend darauf reagiert. <strong>Resilient Software</strong> ist hier das wichtige Stichwort.
+Die Anzahl an Nodes im Schwarm sollte nach Möglichkeit ungerade sein, damit man einfache Mehrheiten bilden kann.
 </td>
 </tr>
 </table>
 </div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-bash" data-lang="bash">for i in {1..3}; do
+    docker-machine create --driver=virtualbox swarm-node-$i
+done</code></pre>
+</div>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Tipp</div>
+</td>
+<td class="content">
+Wenn wir die Maschinen mit <em>docker-machine</em> erstellen sind bereits alle Zertifikate richtig konfiguriert.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Zunächst prüfen wir, ob die Knoten korrekt erstellt und gestartet sind.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-bash" data-lang="bash">swarm-node-1      -        virtualbox   Running   tcp://192.168.99.101:2376           v1.13.0-rc4
+swarm-node-2      -        virtualbox   Running   tcp://192.168.99.102:2376           v1.13.0-rc4
+swarm-node-3      -        virtualbox   Running   tcp://192.168.99.103:2376           v1.13.0-rc4</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Mit den einzelnen Knoten können wir uns jetzt über die <em>Docker Remote</em>-API verbinden.</p>
+</div>
+<div class="paragraph">
+<p>Wir machen die Knoten 1 und 2 zu <em>Swarm-Managern</em>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-bash" data-lang="bash">#connect to node 1
+eval $(docker-machine env swarm-node-1)
+
+docker swarm init --advertise-addr $(docker-machine ip swarm-node-1)
+
+# connect to node 2
+eval $(docker-machine env swarm-node-2) <b class="conum">(1)</b>
+
+
+# join swarm as worker
+docker swarm join --token &lt;token&gt; $(docker-machine ip swarm-node-1):2377 <b class="conum">(2)</b>
+
+# connect to node 3
+eval $(docker-machine env swarm-node-3)
+
+# join swarm as worker
+docker swarm join --token &lt;token&gt; $(docker-machine ip swarm-node-1):2377 <b class="conum">(3)</b>
+
+# promote node-2
+docker node promote swarm-node-2
+Node swarm-node-2 promoted to a manager in the swarm. <b class="conum">(4)</b>
+
+
+# status
+docker node ls
+ID                           HOSTNAME      STATUS  AVAILABILITY  MANAGER STATUS
+kr5m52gdhx3ky7enck5ifjd27    swarm-node-2  Ready   Active        Reachable
+qb2llmor6n5hogv3ql1pudl7d *  swarm-node-1  Ready   Active        Leader
+wr708u31k6uxogn0u66ykh61n    swarm-node-3  Ready   Active</code></pre>
+</div>
+</div>
 <hr>
+<div class="paragraph">
+<p>Die Kommunikation im Swarm muss immer über einen Manager geschehen, denn nur Manager haben die Befugnis <em>Entscheidungen</em> treffen.</p>
+</div>
 </div>
 <div class="sect2">
 <h3 id="beispielanwendung">Beispielanwendung</h3>
 <div class="paragraph">
-<p>Die Anwendung ist eine Spring Boot Anwendung mit <a href="https://docs.spring.io/spring-boot/docs/current-SNAPSHOT/reference/htmlsingle/#production-ready">Actuator</a>.</p>
-</div>
-<div class="admonitionblock important">
-<table>
-<tr>
-<td class="icon">
-<div class="title">Wichtig</div>
-</td>
-<td class="content">
-Spring Boot Actuator bietet eine ganze Menge <em>Endpoints</em> um den Zustand der Anwendung zu überwachen. Die Anwendung gibt beispielsweise über den Endpunkt "/blog/health" den Status zurück, ob sie <em>healthy</em> ist. Healthy ist natürlich abhängig davon ob die verwendeten Upstream Services und die Infrastruktur-Komponenten verfügbar sind. Beispielsweise sollte die Anwendung nur <em>healthy</em> sein, wenn eine verwendete Datenbank vorhanden ist.
-</td>
-</tr>
-</table>
+<p>Wir arbeiten erneut mit der <em>einfachen</em> Health-Check Spring Boot Applikation aus dem letzten Artikel.</p>
 </div>
 <div class="paragraph">
-<p>Als nächstes starten wir die Anwendung.</p>
+<p>Zusätzlich deployen wir den <a href="https://github.com/ManoMarks/docker-swarm-visualizer">Swarm-Visualizer</a> um den Schwarm zu sichtbar zu machen.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-bash" data-lang="bash">docker run -d --rm -p 8080:8080 effectivetrainings/docker-health</code></pre>
+<pre class="highlight"><code class="language-bash" data-lang="bash">docker service create \
+  --name=viz \
+  --publish=9000:8080/tcp \
+  --constraint=node.role==manager \ <b class="conum">(1)</b>
+  --mount=type=bind,src=/var/run/docker.sock,dst=/var/run/docker.sock \
+  manomarks/visualizer</code></pre>
 </div>
+</div>
+<div class="colist arabic">
+<ol>
+<li>
+<p>Der Visualizer <strong>muss</strong> auf einem Manager laufen</p>
+</li>
+</ol>
 </div>
 <div class="paragraph">
-<p>Nach kurzer Zeit können wir über einen <em>cURL</em> die <em>Healthyness</em> der Anwendung abfragen.</p>
+<p>Prüfen Sie mit <em>docker service ls</em> wann der Visualizer bereit ist.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-bash" data-lang="bash">{
-"status":"UP",
-"static":{"status":"UP"},
-"diskSpace": {"status":"UP","total":67371577344,"free":61355114496,"threshold":10485760}
-}</code></pre>
+<pre class="highlight"><code class="language-bash" data-lang="bash">docker service ls
+mbkr330h65kh  viz   replicated  0/1       manomarks/visualizer:latest</code></pre>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="/assets/images/swarm_health/swarm_visualizer.png" alt="Swarm Visualizer" width="600">
 </div>
 </div>
 <div class="paragraph">
-<p>Hier sehen wir die <em>HealthChecks</em> der Anwendung. Selbst geschrieben ist der Static-Health-Check, mit dem die Anwendung einfach statisch in einen Healthy- oder Unhealthy-Zustand gesetzt werden kann.</p>
+<p>Deployen Sie anschließend die Health-Applikation als Service mit zwei Replicas.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-bash" data-lang="bash">curl "http://localhost:8080/environment/health?status=false"
+<pre class="highlight"><code class="language-bash" data-lang="bash">#connect to manager
+eval $(docker-machine env swarm-node-1)
 
-curl "http://localhost:8080/health"
-{
-    "status": "DOWN",
-    "static":{"status":"DOWN"},
-    "diskSpace":{"status":"UP","total":67371577344,"free":61354893312,threshold":10485760}
-}</code></pre>
+docker service create --health-cmd "curl -f http://localhost:8080/health || exit 1" --name health --replicas 2 -p 8080:8080 effectivetrainings/docker-health
+
+#status
+docker service ps viz
+ID         NAME   IMAGE                        NODE          DESIRED STATE CURRENT STATE
+ymzuujcd6awr  viz.1  manomarks/visualizer:latest  swarm-node-1  Running        Preparing</code></pre>
 </div>
 </div>
-<div class="paragraph">
-<p>Das Problem ist, der Container ist per Definition bisher immer noch gesund, obwohl die Anwendung vielleicht nicht mal antwortet. Die <em>Docker Engine</em> weiß nichts vom Health-Status der Anwendung.
-Der Container selbst hat <em>bis jetzt</em> noch keinen Health-State.</p>
+<div class="imageblock">
+<div class="content">
+<img src="/assets/images/swarm_health/swarm_replicas.png" alt="Swarm Replicas" width="600">
 </div>
-<div class="paragraph">
-<p>Damit die Engine auf eine Änderung im Health-Status reagieren kann muss der Container selbst auch wissen, ob er Healthy ist oder nicht. Und genau hier kommen die neuen Health-Checks ins Spiel.</p>
 </div>
 <hr>
 </div>
 <div class="sect2">
 <h3 id="docker-health-check">Docker Health Check</h3>
 <div class="paragraph">
-<p>Health Checks sind essentiell für die Anwendung - sowohl für das Monitoring, den Betrieb als auch für beispielsweise <em>Service Discovery</em> in verteilten Umgebungen.
-Dabei kann sich ein Health-Check ganz unterschiedlich gestalten, beispielsweise kann es für eine Oracle ein einfaches SQL Statement sein wie <em>select count from dual</em>, ein HTTP-Status Code eines Actuator-Endpoints oder ein bash-script das nur prüft, ob ein bestimmter Prozess noch lebt.</p>
-</div>
-<div class="paragraph">
-<p>Für jeden Container kann separat definiert werden, wie ein Health-Check ausgeführt werden kann. Für die Überwachung der Spring-Boot Anwendung beispielsweise bietet sich die Abfrage des <em>Health</em>-Endpoint mittels <em>cURL</em> an.</p>
-</div>
-<div class="paragraph">
-<p>Für den Health-Check sind folgende Parameter für <em>docker run</em> hinzugekommen. Analog könnten die Health-Checks im Dockerfile definiert werden.</p>
+<p>Nachdem die Services deployt sind machen wir uns erneut die Möglichkeit zunutze, den Health-Status der Anwendung manuell zu setzen. Wir setzen eine Service-Instanz auf <em>unhealthy</em>.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-bash" data-lang="bash">--health-cmd string   <b class="conum">(1)</b>
---health-interval duration  (default 0s) <b class="conum">(2)</b>
---health-retries int <b class="conum">(3)</b>
---health-timeout duration (default 0s) <b class="conum">(4)</b></code></pre>
-</div>
-</div>
-<div class="colist arabic">
-<ol>
-<li>
-<p>Kommando für den Health-Check (Bash, Python..)</p>
-</li>
-<li>
-<p>Zeit zwischen Health-Checks, standardmäßig alle 30  sekunden.</p>
-</li>
-<li>
-<p>Retries bevor ein Container als <em>unhealthy</em> deklariert wird</p>
-</li>
-<li>
-<p>Timeout für den Health-Check</p>
-</li>
-</ol>
-</div>
-<div class="paragraph">
-<p>Ein einfacher Health-Check für die Spring-Boot Anwendung wäre beispielsweise folgender <em>cURL</em>-Aufruf.</p>
-</div>
-<div class="admonitionblock tip">
-<table>
-<tr>
-<td class="icon">
-<div class="title">Tipp</div>
-</td>
-<td class="content">
-Ein Health-Check liefert einen boolschen Wert - 0 oder 1. 0 &#8658; healthy, 1 &#8658; unhealthy.
-</td>
-</tr>
-</table>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlight"><code class="language-bash" data-lang="bash">--health-cmd curl -f http://localhost:8080/health | exit 1 <b class="conum">(1)</b></code></pre>
-</div>
-</div>
-<div class="colist arabic">
-<ol>
-<li>
-<p>Mit <em>curl -f</em> zwingt curl, den Fehlercode 1 im Falle eines HTTP-Errors zurückzuliefern, andernfalls den Code 0.</p>
-</li>
-</ol>
-</div>
-<div class="paragraph">
-<p>Starten wir den Container mit aktiviertem Health-Check.</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlight"><code class="language-bash" data-lang="bash">docker run -p 8080:8080 -d --name health-check --rm --health-cmd "curl -f http://localhost:8080/health || exit 1" effectivetrainings/docker-health</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Die Instruktion im Dockerfile wäre analog.</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlight"><code class="language-bash" data-lang="bash">HEALTHCHECK CMD curl -f http://localhost:8080/health || exit 1;</code></pre>
+<pre class="highlight"><code class="language-bash" data-lang="bash">curl $(docker-machine ip node-3):8080/environment/health?status=false</code></pre>
 </div>
 </div>
 <div class="admonitionblock caution">
@@ -344,69 +353,31 @@ Ein Health-Check liefert einen boolschen Wert - 0 oder 1. 0 &#8658; healthy, 1 &
 <div class="title">Achtung</div>
 </td>
 <td class="content">
-Achtung - der Health-Check wird im Container ausgeführt, nur der interne Container ist also wichtig - <strong>nicht</strong> der gemappte.
+Achtung, wir setzen hier die Umgebungsvariablen von <strong>Node-3</strong>. Es ist aber nicht definiert, welcher Container wirklich angesprochen wird. Das entscheidet Docker intern über den DNS-Server.
 </td>
 </tr>
 </table>
 </div>
 <div class="paragraph">
-<p>Mit <em>docker inspect healthcheck</em> sehen wir jetzt einen Health-Status für den Container.</p>
+<p>Docker Swarm überwacht ständig den Status der Services / Tasks im Cluster und re-scheduled Container wenn nötig.</p>
 </div>
-<div class="listingblock">
+<div class="paragraph">
+<p>Standardmäßig versucht Swarm <strong>dreimal</strong> den Health-Check durchzuführen, nach dem dritten gescheiterten Versuch wird der Container neu gestartet.</p>
+</div>
+<div class="videoblock">
 <div class="content">
-<pre class="highlight"><code class="language-bash" data-lang="bash">"Health": {
-    "Status": "starting",
-    "FailingStreak": 0,
-    "Log": []
-}</code></pre>
+<iframe src="https://www.youtube.com/embed/H9OEvQULVnI?rel=0" frameborder="0" allowfullscreen></iframe>
 </div>
 </div>
 <div class="paragraph">
-<p>Parallel ist es recht spannend, sich den Docker Event Stream ausgeben zu lassen.</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlight"><code class="language-bash" data-lang="bash">docker events
-
-2017-01-03T22:10:18.137182990+01:00 container exec_start: /bin/sh -c curl -f http://localhost:8080/health 1a2bfc354a3eb75c41e8822620c85b7920ba0ebb9103aa481b090da6ce137037 (image=effectivetrainings/docker-health, name=health-check)
-
-2017-01-03T22:10:18.527115972+01:00 container health_status: healthy 1a2bfc354a3eb75c41e8822620c85b7920ba0ebb9103aa481b090da6ce137037 (image=effectivetrainings/docker-health, name=health-check)</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Was aber passiert jetzt, wenn wir den Container auf <em>unhealthy</em> setzen? Je nach eingestelltem Interval dauert es jetzt kurz, bis die Engine das Problem entdeckt.</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlight"><code class="language-bash" data-lang="bash">curl "localhost:8080/environment/health?status=false"
-
-docker ps
-
-CONTAINER ID        IMAGE                              COMMAND                CREATED             STATUS                     PORTS                    NAMES
-1a2bfc354a3e        effectivetrainings/docker-health   "java -jar /app.jar"   3 minutes ago       Up 3 minutes (unhealthy)   0.0.0.0:8080-&gt;8080/tcp   health-check</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Ein Scheduler wie Docker Swarm könnte jetzt beispielsweise den Container einfach neustarten, <em>in der Hoffnung</em>, dass das hilft.</p>
+<p>Zusätzlich werden nur Container geroutet, die Healthy sind. Sobald ein Container <em>unhealthy</em> ist und der Manager dies erkennt wird er nicht mehr angesprochen.</p>
 </div>
 <hr>
 <div class="sect3">
 <h4 id="fazit">Fazit</h4>
 <div class="paragraph">
-<p>Mit Container-Health Checks können relativ einfach Checks implementiert werden, die einen Scheduler unterstützen können die richtigen Entscheidungen zu treffen.</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p>Welcher Container wird jetzt neugestartet?</p>
-</li>
-<li>
-<p>Wohin soll deployt werden</p>
-</li>
-</ul>
-</div>
-<div class="paragraph">
-<p>Docker Swarm beispielsweise macht sich den Health-Check zu Nutze und routet nur Requests zu Containern, die <em>healthy</em> sind. Außerdem versucht Swarm, Container neu zu deployen, wenn Sie in den Status <em>unhealthy</em> wechseln.</p>
+<p>Speziell im Swarm machen die Container Health Checks Sinn, da Swarm Container nicht routet, die <em>unhealthy</em> sind.
+Die Verwendung ist <em>wie immer</em> denkbar einfach und funktioniert erstaunlich stabil und gut.</p>
 </div>
 <hr>
 </div>
@@ -416,10 +387,7 @@ CONTAINER ID        IMAGE                              COMMAND                CR
 <p><a href="https://github.com/effective-docker/docker-healthcheck.git">Sourcen</a></p>
 </div>
 <div class="paragraph">
-<p><a href="http://www.effectivetrainings.de/html/workshops/effective_docker_workshop.php">Effecive Dockerschulung</a>.</p>
-</div>
-<div class="paragraph">
-<p>Schöner NewRelic <a href="https://blog.newrelic.com/2016/08/24/docker-health-check-instruction/">Post</a> zum Thema</p>
+<p><a href="https://docs.docker.com/engine/swarm/">swarm mode</a></p>
 </div>
 <hr>
 </div>
@@ -481,7 +449,7 @@ Ich biete <a href="http://www.effectivetrainings.de/html/workshops/effective_doc
         /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
         var disqus_shortname = 'perfectlyrandom'; // required: replace example with your forum shortname
         // var disqus_developer = 1; // Comment out when the site is live
-        var disqus_identifier = "/docker-healthchecks/";
+        var disqus_identifier = "/docker-swarm-health-checks/";
 
         /* * * DON'T EDIT BELOW THIS LINE * * */
         (function() {

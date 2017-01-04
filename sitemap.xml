@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 <url>
+<loc>http://effective-docker.github.io/docker-swarm-health-checks/</loc>
+<lastmod>2017-01-04T00:00:00+00:00</lastmod>
+</url>
+<url>
 <loc>http://effective-docker.github.io/docker-healthchecks/</loc>
 <lastmod>2017-01-03T00:00:00+00:00</lastmod>
 </url>
@@ -11,7 +15,10 @@
 <loc>http://effective-docker.github.io/</loc>
 </url>
 <url>
+<loc>http://effective-docker.github.io/template/</loc>
+</url>
+<url>
 <loc>http://effective-docker.github.io/google29874ab903c40e3c.html</loc>
-<lastmod>2017-01-03T23:29:40+00:00</lastmod>
+<lastmod>2017-01-04T21:20:12+00:00</lastmod>
 </url>
 </urlset>

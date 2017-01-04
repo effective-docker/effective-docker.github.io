@@ -156,7 +156,45 @@
             <ul>
             
                 <li>
-                  <a href="/docker-healthchecks/">Docker Health Checks</a>
+                    <span class="post-date"> 04.01.2017</span> <a href="/docker-swarm-health-checks/">Docker Swarm Health Checks</a>
+                    <a href="/docker-swarm-health-checks/">
+                    <div class="sect1">
+<h2 id="docker-swarm-mode-health-checks">Docker Swarm Mode Health Checks</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="tldr">TLDR;</h3>
+<div class="ulist">
+<ul>
+<li>
+Die Sourcen sind unter : <a href="https://github.com/effective-docker/docker-healthcheck.git" class="bare">https://github.com/effective-docker/docker-healthcheck.git</a>
+</li>
+<li>
+Swarm Scheduler arbeitet mit den Container Health Checks
+</li>
+<li>
+Nur <em>healthy</em> Container werden geroutet.
+</li>
+<li>
+Nach drei fehlgeschlagenen Health-Checks wird ein Container neu gestartet (ggf. auch auf einem anderen Knoten)
+</li>
+</ul>
+</div>
+<hr>
+</div>
+<div class="sect2">
+<h3 id="docker-swarm-mode">Docker Swarm Mode</h3>
+<div class="paragraph">
+Im <a href="https://effective-docker.github.io/docker-healthchecks/">letzten Eintrag</a> haben wir uns mit <em>Health Checks</em> in Containern beschäftigt. Das alleine ist schon eine sehr wichtige Funktionalität, entwickelt ihr Potential allerdings erst in Zusammenarbeit mit einem Scheduler der das aktiv unterstützt. In diesem Artikel konzentrieren wir uns auf <strong>Docker Swarm im Swarm Mode (ab 1.12)</strong>
+</div>
+</div>
+</div>
+</div>
+                    </a>
+                </li>
+              
+                <li>
+                    <span class="post-date"> 03.01.2017</span> <a href="/docker-healthchecks/">Docker Health Checks</a>
+                    <a href="/docker-healthchecks/">
                     <div class="sect1">
 <h2 id="docker-health-checks">Docker Health Checks</h2>
 <div class="sectionbody">
@@ -188,6 +226,7 @@ Anwendungen zu deployen ist <em>einfach</em>, und Docker Container zu starten is
 </div>
 </div>
 </div>
+                    </a>
                 </li>
               
             </ul>
@@ -207,7 +246,9 @@ Anwendungen zu deployen ist <em>einfach</em>, und Docker Container zu starten is
 
             <ul id="all-posts" class="posts nav">
                 
-                <li><a href="/docker-healthchecks/">Health Checks mit Docker, Spring Boot und Actuator</a></li>
+                <li><a href="/docker-swarm-health-checks/"><span class="post-date"> 04.01.2017</span> Health Checks mit Docker Swarm Mode</a></li>
+                
+                <li><a href="/docker-healthchecks/"><span class="post-date"> 03.01.2017</span> Health Checks mit Docker, Spring Boot und Actuator</a></li>
                 
             </ul>
 
