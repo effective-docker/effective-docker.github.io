@@ -5,7 +5,7 @@
 <head>
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Docker Chaos Testing mit Pumba</title>
+    <title>Chaos Tests</title>
 
 
     <meta name="description"
@@ -761,6 +761,27 @@ Stress-Testing / Chaos-Testing macht definitiv Sinn. Ich würde es wahrscheinlic
 <hr>
 </div>
 <div class="sect3">
+<h4 id="cleanup">Cleanup</h4>
+<div class="paragraph">
+<p>Damit ist das Experiment beendet und wir verwischen alle Spuren.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-bash" data-lang="bash">docker service rm pumba
+
+for i in {1..5}; do
+   docker service rm service-$i
+done
+
+docker service rm viz
+
+docker network rm test
+
+docker-machine rm node-1 node-2 node-3</code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
 <h4 id="docker-training">Docker Training</h4>
 <div class="paragraph">
 <p><strong>Wollen Sie mehr erfahren?</strong>
@@ -783,7 +804,7 @@ Ich biete <a href="http://www.effectivetrainings.de/html/workshops/effective_doc
 
             <ul id="all-posts" class="posts nav">
                 
-                <li><a href="/pumba-chaos-testing/"><span class="post-date"> 06.01.2017</span> Wie Resilient ist meine Software</a></li>
+                <li><a href="/pumba-chaos-testing/"><span class="post-date"> 06.01.2017</span> Docker Chaos Testing mit Pumba</a></li>
                 
                 <li><a href="/docker-swarm-health-checks/"><span class="post-date"> 04.01.2017</span> Health Checks mit Docker Swarm Mode</a></li>
                 
