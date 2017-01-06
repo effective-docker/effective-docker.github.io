@@ -157,10 +157,40 @@
             
                 <li>
                     <span class="post-date"> 06.01.2017</span> <a href="/pumba-chaos-testing/">Chaos Tests</a>
-                    <div class="sect1">
-<h2 id="docker-health-checks">Docker Health Checks</h2>
-<div class="sectionbody">
-
+                    <div class="sect2">
+<h3 id="chaos-testing">Chaos Testing</h3>
+<div class="paragraph">
+In verteilten Systemen können wir Fehler niemals ausschließen. Die möglichen Fehlerquellen sind fast unendlich.
+</div>
+<div class="ulist">
+<ul>
+<li>
+partieller oder totaler Netzwerkausfall
+</li>
+<li>
+Datenbankprobleme
+</li>
+<li>
+Anwendungen / Services sind kurzfristig / langfristig nicht verfügbar
+</li>
+<li>
+Lastprobleme
+</li>
+<li>
+Sicherheit / Firewall / ungültige Zertifkate
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<strong>Resilient Software</strong> sollte so geschrieben sein, dass Fehler akzeptiert werden und der Aufrufer noch zumindest teilweise das System bedienen kann.
+</div>
+<div class="paragraph">
+<strong>Netflix</strong> hat mit seiner Werkzeug-Box <a href="https://github.com/Netflix/SimianArmy">SimianArmy</a> Tools für das Chaos-Testing erstellt und damit <strong>Chaos-Testing</strong> salonfähig gemacht.
+Chaos-Testing folgt den <a href="http://principlesofchaos.org/">Prinzipien des Chaos</a>.
+Beispielsweise fährt Chaos-Monkey durch Zufall ausgewählte Server-Instanzen herunter, genau wie ein Affe, der wahllos Kabel zieht.
+</div>
+<div class="paragraph">
+Warum macht Netflix das? Weil nur dann sichergestellt ist, dass ein System auch dann funktioniert, wenn Upstream-Services nicht verfügbar* sind. Ein Entwickler kann sich niemals darauf verlassen, dass der Service, den er gerade aufruft auch verfügbar ist - <strong>Chaos</strong>.
 </div>
 </div>
                 </li>

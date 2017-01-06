@@ -152,10 +152,7 @@
 
         <!-- Main Blog Content -->
         <div class="col-sm-8 blog-main" role="content">
-            <div class="sect1">
-<h2 id="docker-health-checks">Docker Health Checks</h2>
-<div class="sectionbody">
-<div class="sect2">
+            <div class="sect2">
 <h3 id="chaos-testing">Chaos Testing</h3>
 <div class="paragraph">
 <p>In verteilten Systemen können wir Fehler niemals ausschließen. Die möglichen Fehlerquellen sind fast unendlich.</p>
@@ -233,7 +230,7 @@ Zunächst erstellen wir uns drei Nodes.</p>
 <table>
 <tr>
 <td class="icon">
-<div class="title">Tipp</div>
+<div class="title">Tip</div>
 </td>
 <td class="content">
 Üblicherweise wird eine ungerade Anzahl an Nodes in einem Cluster verwendet. Wissen Sie warum?
@@ -273,7 +270,7 @@ done</code></pre>
 <table>
 <tr>
 <td class="icon">
-<div class="title">Tipp</div>
+<div class="title">Tip</div>
 </td>
 <td class="content">
 Die URL bekommen Sie über 'echo "http://$(docker-machine ip $manager):9000"', bei mir <strong><a href="http://192.168.99.100:9000" class="bare">http://192.168.99.100:9000</a></strong>
@@ -560,7 +557,7 @@ Die Wahrscheinlichkeit zwei langsame Knoten zu treffen bei ca 9% und alle drei K
 <table>
 <tr>
 <td class="icon">
-<div class="title">Achtung</div>
+<div class="title">Caution</div>
 </td>
 <td class="content">
 Die Erwartung wäre also, ca. 60% der Requests sollten im Normbereich liegen, 30% der Requests durchschnittlich 3 Sekunden dauern und ein kleiner Bereich sollte sehr lange dauern (&gt;= 6 Sekunden).
@@ -659,7 +656,7 @@ Percentage of the requests served within a certain time (ms)
 <table>
 <tr>
 <td class="icon">
-<div class="title">Achtung</div>
+<div class="title">Caution</div>
 </td>
 <td class="content">
 Achtung, damit das funktioniert muss das Tool <em>tc</em> im Container installiert sein. Typischerweise kommt das mit dem Paket iproute2.
@@ -786,8 +783,6 @@ docker-machine rm node-1 node-2 node-3</code></pre>
 <div class="paragraph">
 <p><strong>Wollen Sie mehr erfahren?</strong>
 Ich biete <a href="http://www.effectivetrainings.de/html/workshops/effective_docker_workshop.php">Consulting / Training</a> für Docker. Schauen Sie doch mal vorbei!</p>
-</div>
-</div>
 </div>
 </div>
 </div>

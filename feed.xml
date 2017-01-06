@@ -1,7 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><?xml-stylesheet type="text/xml" href="http://effective-docker.github.io/feed.xslt.xml"?><feed xmlns="http://www.w3.org/2005/Atom"><generator uri="http://jekyllrb.com" version="3.1.6">Jekyll</generator><link href="http://effective-docker.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="http://effective-docker.github.io/" rel="alternate" type="text/html" /><updated>2017-01-06T22:53:30+00:00</updated><id>http://effective-docker.github.io/</id><title type="html">Effectivetrainings Blog</title><subtitle>GTechnologie zum Vorteil</subtitle><entry><title type="html">Chaos Tests</title><link href="http://effective-docker.github.io/pumba-chaos-testing/" rel="alternate" type="text/html" title="Chaos Tests" /><published>2017-01-06T00:00:00+00:00</published><updated>2017-01-06T00:00:00+00:00</updated><id>http://effective-docker.github.io/pumba-chaos-testing</id><content type="html" xml:base="http://effective-docker.github.io/pumba-chaos-testing/">&lt;div class=&quot;sect1&quot;&gt;
-&lt;h2 id=&quot;docker-health-checks&quot;&gt;Docker Health Checks&lt;/h2&gt;
-&lt;div class=&quot;sectionbody&quot;&gt;
-&lt;div class=&quot;sect2&quot;&gt;
+<?xml version="1.0" encoding="utf-8"?><?xml-stylesheet type="text/xml" href="http://effective-docker.github.io/feed.xslt.xml"?><feed xmlns="http://www.w3.org/2005/Atom"><generator uri="http://jekyllrb.com" version="3.1.6">Jekyll</generator><link href="http://effective-docker.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="http://effective-docker.github.io/" rel="alternate" type="text/html" /><updated>2017-01-06T22:54:27+00:00</updated><id>http://effective-docker.github.io/</id><title type="html">Effectivetrainings Blog</title><subtitle>GTechnologie zum Vorteil</subtitle><entry><title type="html">Chaos Tests</title><link href="http://effective-docker.github.io/pumba-chaos-testing/" rel="alternate" type="text/html" title="Chaos Tests" /><published>2017-01-06T00:00:00+00:00</published><updated>2017-01-06T00:00:00+00:00</updated><id>http://effective-docker.github.io/pumba-chaos-testing</id><content type="html" xml:base="http://effective-docker.github.io/pumba-chaos-testing/">&lt;div class=&quot;sect2&quot;&gt;
 &lt;h3 id=&quot;chaos-testing&quot;&gt;Chaos Testing&lt;/h3&gt;
 &lt;div class=&quot;paragraph&quot;&gt;
 &lt;p&gt;In verteilten Systemen können wir Fehler niemals ausschließen. Die möglichen Fehlerquellen sind fast unendlich.&lt;/p&gt;
@@ -79,7 +76,7 @@ Zunächst erstellen wir uns drei Nodes.&lt;/p&gt;
 &lt;table&gt;
 &lt;tr&gt;
 &lt;td class=&quot;icon&quot;&gt;
-&lt;div class=&quot;title&quot;&gt;Tipp&lt;/div&gt;
+&lt;div class=&quot;title&quot;&gt;Tip&lt;/div&gt;
 &lt;/td&gt;
 &lt;td class=&quot;content&quot;&gt;
 Üblicherweise wird eine ungerade Anzahl an Nodes in einem Cluster verwendet. Wissen Sie warum?
@@ -119,7 +116,7 @@ done&lt;/code&gt;&lt;/pre&gt;
 &lt;table&gt;
 &lt;tr&gt;
 &lt;td class=&quot;icon&quot;&gt;
-&lt;div class=&quot;title&quot;&gt;Tipp&lt;/div&gt;
+&lt;div class=&quot;title&quot;&gt;Tip&lt;/div&gt;
 &lt;/td&gt;
 &lt;td class=&quot;content&quot;&gt;
 Die URL bekommen Sie über &#39;echo &quot;http://$(docker-machine ip $manager):9000&quot;&#39;, bei mir &lt;strong&gt;&lt;a href=&quot;http://192.168.99.100:9000&quot; class=&quot;bare&quot;&gt;http://192.168.99.100:9000&lt;/a&gt;&lt;/strong&gt;
@@ -406,7 +403,7 @@ Die Wahrscheinlichkeit zwei langsame Knoten zu treffen bei ca 9% und alle drei K
 &lt;table&gt;
 &lt;tr&gt;
 &lt;td class=&quot;icon&quot;&gt;
-&lt;div class=&quot;title&quot;&gt;Achtung&lt;/div&gt;
+&lt;div class=&quot;title&quot;&gt;Caution&lt;/div&gt;
 &lt;/td&gt;
 &lt;td class=&quot;content&quot;&gt;
 Die Erwartung wäre also, ca. 60% der Requests sollten im Normbereich liegen, 30% der Requests durchschnittlich 3 Sekunden dauern und ein kleiner Bereich sollte sehr lange dauern (&amp;gt;= 6 Sekunden).
@@ -505,7 +502,7 @@ Percentage of the requests served within a certain time (ms)
 &lt;table&gt;
 &lt;tr&gt;
 &lt;td class=&quot;icon&quot;&gt;
-&lt;div class=&quot;title&quot;&gt;Achtung&lt;/div&gt;
+&lt;div class=&quot;title&quot;&gt;Caution&lt;/div&gt;
 &lt;/td&gt;
 &lt;td class=&quot;content&quot;&gt;
 Achtung, damit das funktioniert muss das Tool &lt;em&gt;tc&lt;/em&gt; im Container installiert sein. Typischerweise kommt das mit dem Paket iproute2.
@@ -634,9 +631,39 @@ docker-machine rm node-1 node-2 node-3&lt;/code&gt;&lt;/pre&gt;
 Ich biete &lt;a href=&quot;http://www.effectivetrainings.de/html/workshops/effective_docker_workshop.php&quot;&gt;Consulting / Training&lt;/a&gt; für Docker. Schauen Sie doch mal vorbei!&lt;/p&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;</content><summary type="html">Docker Health Checks</summary></entry><entry><title type="html">Docker Swarm Health Checks</title><link href="http://effective-docker.github.io/docker-swarm-health-checks/" rel="alternate" type="text/html" title="Docker Swarm Health Checks" /><published>2017-01-04T00:00:00+00:00</published><updated>2017-01-04T00:00:00+00:00</updated><id>http://effective-docker.github.io/docker-swarm-health-checks</id><content type="html" xml:base="http://effective-docker.github.io/docker-swarm-health-checks/">&lt;div class=&quot;sect1&quot;&gt;
+&lt;/div&gt;</content><summary type="html">Chaos Testing
+
+In verteilten Systemen können wir Fehler niemals ausschließen. Die möglichen Fehlerquellen sind fast unendlich.
+
+
+
+
+partieller oder totaler Netzwerkausfall
+
+
+Datenbankprobleme
+
+
+Anwendungen / Services sind kurzfristig / langfristig nicht verfügbar
+
+
+Lastprobleme
+
+
+Sicherheit / Firewall / ungültige Zertifkate
+
+
+
+
+Resilient Software sollte so geschrieben sein, dass Fehler akzeptiert werden und der Aufrufer noch zumindest teilweise das System bedienen kann.
+
+
+Netflix hat mit seiner Werkzeug-Box SimianArmy Tools für das Chaos-Testing erstellt und damit Chaos-Testing salonfähig gemacht.
+Chaos-Testing folgt den Prinzipien des Chaos.
+Beispielsweise fährt Chaos-Monkey durch Zufall ausgewählte Server-Instanzen herunter, genau wie ein Affe, der wahllos Kabel zieht.
+
+
+Warum macht Netflix das? Weil nur dann sichergestellt ist, dass ein System auch dann funktioniert, wenn Upstream-Services nicht verfügbar* sind. Ein Entwickler kann sich niemals darauf verlassen, dass der Service, den er gerade aufruft auch verfügbar ist - Chaos.</summary></entry><entry><title type="html">Docker Swarm Health Checks</title><link href="http://effective-docker.github.io/docker-swarm-health-checks/" rel="alternate" type="text/html" title="Docker Swarm Health Checks" /><published>2017-01-04T00:00:00+00:00</published><updated>2017-01-04T00:00:00+00:00</updated><id>http://effective-docker.github.io/docker-swarm-health-checks</id><content type="html" xml:base="http://effective-docker.github.io/docker-swarm-health-checks/">&lt;div class=&quot;sect1&quot;&gt;
 &lt;h2 id=&quot;docker-swarm-mode-health-checks&quot;&gt;Docker Swarm Mode Health Checks&lt;/h2&gt;
 &lt;div class=&quot;sectionbody&quot;&gt;
 &lt;div class=&quot;sect2&quot;&gt;
