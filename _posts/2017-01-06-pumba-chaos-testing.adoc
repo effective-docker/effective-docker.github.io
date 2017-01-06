@@ -384,7 +384,7 @@ CAUTION: Achtung, damit das funktioniert muss das Tool _tc_ im Container install
 ----
 # wieder ohne replicas
 for i in {1..5}; do
-   docker service update --replicas=2 service-$i
+   docker service update --replicas=1 service-$i
 done
 
 #remove pumba
