@@ -1,0 +1,857 @@
+<!doctype html>
+<!--[if IE 9]>
+<html class="lt-ie10" lang="en"> <![endif]-->
+<html class="no-js" lang="en" data-useragent="Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.2; Trident/6.0)">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Docker Chaos Testing mit Pumba</title>
+
+
+    <meta name="description"
+          content="Docker in Production, Docker Blog, Docker in Produktion, Docker Internals"/>
+
+    <meta name="author" content="Martin Dilger"/>
+
+    <meta http-equiv="X-UA-Compatible" content="edge">
+<meta charset="utf-8">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta http-equiv="content-script-type" content="text/javascript" />
+<meta http-equiv="content-style-type" content="text/css" />
+<meta http-equiv="language" content="de" />
+<meta http-equiv="pragma" content="no-cache" />
+
+<meta name="description" content="Persoenliche IT-Trainings mit Erfolgsgarantie - Docker- Git- Scrum und Kanbanschulungen, IT Consulting fuer Java, Enterprise- und Web-Projekte im agilen Umfeld." xml:lang="de"/>
+<meta name="shortDescription" content="IT Consulting & Professionelle IT Trainings"/>
+<meta name="robots" content="index,follow" />
+<meta name="DC.Publisher" content="Martin Dilger - Effective Trainings" />
+<meta name="DC.Language" content="de" />
+<meta name="publisher" content="Martin Dilger - Effective Trainings" />
+<meta name="googlebot" content="archive"/>
+<meta name="resource-type" content="content"/>
+<meta name="audience" content="all"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<link rel="alternate" type="application/rss+xml" title="Effective Trainings RSS" href="http://effective-docker.github.io" />
+<link rel="author" href="https://plus.google.com/u/0/103776857080750763965"/>
+<!-- Le styles -->
+
+<!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
+<!--[if lt IE 9]>
+<script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+<![endif]-->
+<!-- custom css -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css"/>
+<script type="text/javascript" language="javascript">
+    var _gaq = _gaq || [];
+    function trackLink(link, category, action, redirect) {
+
+        if(redirect == undefined) {
+            redirect = true;
+        }
+
+        try {
+            _gaq.push(['_trackEvent', category , action]);
+        } catch (error) {
+            console.log("tracking error");
+        }
+
+        if(redirect) {
+        setTimeout(function () {
+            document.location.href = link.href;
+        }, 100);
+        }
+    }
+</script>
+
+
+    <link rel="stylesheet" href="../../css/app.css"/>
+    <script src="../../js/vendor/jquery.js"></script>
+    <script src="../../js/foundation.min.js"></script>
+    <script src="../../js/vendor/modernizr.js"></script>
+    <script src="../../js/toc.js"></script>
+</head>
+<body>
+
+
+<!-- Nav Bar -->
+<div class="container">
+    <div class="row">
+    <nav class="navbar navbar-default top-page">
+        <div class="container-fluid">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
+                        data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <!--a class="navbar-brand" href="#">Brand</a-->
+            </div>
+
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                <!--<ul class="nav navbar-nav navbar-right"></ul>-->
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <!-- xing -->
+                        <a title="XING" onclick="trackLink(this,'social-media','xing');return false;"
+                           href="https://www.xing.com/profile/Martin_Dilger2" target="_blank" rel="me"><img
+                                src="http://www.xing.com/img/n/xing_icon_32x32.png" width="32" height="32" alt="XING"
+                                target="_blank"></a></li>
+                    <li>
+                        <!-- gulp -->
+                        <a title="Beraterprofil auf Gulp" href="http://www.gulp.de/Profil/martindilger.html"
+                           target="_blank" onclick="trackLink(this,'social-media','gulp');return false;" rel="me"><img
+                                src="https://www.gulp.de/presse/images/bildmaterial/gulp-logo.jpg" height="32"
+                                alt="Gulp Berater Profil"></a></li>
+                    <li>
+                        <!-- twitter -->
+                        <a title="Twitter" href="https://twitter.com/#!/dilgerma" target="_blank" rel="me"
+                           onclick="trackLink(this,'social-media','twitter');return false;">
+                            <img src="https://effectivetrainings.de/images/twitter.png" width="32"
+                                                                     height="32"
+                                                                     alt="Twitter"></a>
+                    <li>
+                        <!-- github -->
+                        <a title="Github" href="https://github.com/dilgerma" target="_blank" rel="me"
+                           onclick="trackLink(this,'social-media','github');return false;"><img
+                                src="http://effectivetrainings.de/images/effective/github.png" width="32" height="32"
+                                alt="GitHub"
+                                target="_blank"></a>
+                    </li>
+                    <li>
+                        <!-- slideshare -->
+                        <a title="Slideshare" href="http://de.slideshare.net/effectivetrainings"
+                           onclick="trackLink(this,'social-media','slideshare');return false;" target="_blank" rel="me"><img
+                                src="https://effectivetrainings.de/images/effective/slideshare.png" width="32"
+                                height="32"
+                                alt="Slideshare"></a>
+                    </li>
+                </ul>
+                <!--ul class="nav navbar-nav navbar-right">
+                    <li><a href="#">Link</a></li>
+                    </li>
+                </ul-->
+            </div>
+            <!-- /.navbar-collapse -->
+        </div><!-- /.container-fluid -->
+    </nav>
+</div>
+
+
+
+
+    <!-- End Nav -->
+
+
+    <!-- Main Page Content and Sidebar -->
+
+    <div class="row">
+
+        <!-- Main Blog Content -->
+        <div class="col-sm-8 blog-main" role="content">
+            <div class="sect1">
+<h2 id="docker-health-checks">Docker Health Checks</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="chaos-testing">Chaos Testing</h3>
+<div class="paragraph">
+<p>In verteilten Systemen können wir Fehler niemals ausschließen. Die möglichen Fehlerquellen sind fast unendlich.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>partieller oder totaler Netzwerkausfall</p>
+</li>
+<li>
+<p>Datenbankprobleme</p>
+</li>
+<li>
+<p>Anwendungen / Services sind kurzfristig / langfristig nicht verfügbar</p>
+</li>
+<li>
+<p>Lastprobleme</p>
+</li>
+<li>
+<p>Sicherheit / Firewall / ungültige Zertifkate</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p><strong>Resilient Software</strong> sollte so geschrieben sein, dass Fehler akzeptiert werden und der Aufrufer noch zumindest teilweise das System bedienen kann.</p>
+</div>
+<div class="paragraph">
+<p><strong>Netflix</strong> hat mit seiner Werkzeug-Box <a href="https://github.com/Netflix/SimianArmy">SimianArmy</a> Tools für das Chaos-Testing erstellt und damit <strong>Chaos-Testing</strong> salonfähig gemacht.
+Chaos-Testing folgt den <a href="http://principlesofchaos.org/">Prinzipien des Chaos</a>.
+Beispielsweise fährt Chaos-Monkey durch Zufall ausgewählte Server-Instanzen herunter, genau wie ein Affe, der wahllos Kabel zieht.</p>
+</div>
+<div class="paragraph">
+<p>Warum macht Netflix das? Weil nur dann sichergestellt ist, dass ein System auch dann funktioniert, wenn Upstream-Services nicht verfügbar* sind. Ein Entwickler kann sich niemals darauf verlassen, dass der Service, den er gerade aufruft auch verfügbar ist - <strong>Chaos</strong>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="tldr">TLDR;</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>Mit Pumba lassen sich Chaos-Tests in einer Docker / Swarm Umgebung ausführen.
+Pumba kann:</p>
+</li>
+<li>
+<p>Container stoppen</p>
+</li>
+<li>
+<p>Pausieren</p>
+</li>
+<li>
+<p>Netzwerk Pakete verwerfen</p>
+</li>
+<li>
+<p>Netzwerk Pakete neu ordnen</p>
+</li>
+<li>
+<p>Netzwerk Pakete zurückhalten
+'''</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="docker-swarm-setup">Docker Swarm Setup</h3>
+<div class="paragraph">
+<p>Zunächst setzen wir den Schwarm wie gehabt mit <strong>Virtual Box</strong> auf, um schnellstmöglich ein einfaches Test-Szenario zu haben.
+Zunächst erstellen wir uns drei Nodes.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-bash" data-lang="bash">for i in {1..3}; do docker-machine create --driver virtualbox node-$i; done;</code></pre>
+</div>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Tipp</div>
+</td>
+<td class="content">
+Üblicherweise wird eine ungerade Anzahl an Nodes in einem Cluster verwendet. Wissen Sie warum?
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Dann initialisieren wir den Schwarm, machen node-1 und node-2 zu <strong>Managern</strong>, node-3 ist ein <em>einfacher</em> <strong>Worker</strong>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-bash" data-lang="bash">export manager=node-1
+eval $(docker-machine env $manager)
+docker swarm init --advertise-addr $(docker-machine ip $manager)
+export token=$(docker swarm join-token -q worker)
+for i in {2..3}; do
+  eval $(docker-machine env node-$i)
+  docker swarm join --token=$token $(docker-machine ip node-1)
+done</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Wir starten wie immer den Swarm-Visualizer, um besser zu verstehen was passiert.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-bash" data-lang="bash">docker service create \
+  --name=viz \
+  --publish=9000:8080/tcp \
+  --constraint=node.role==manager \
+  --mount=type=bind,src=/var/run/docker.sock,dst=/var/run/docker.sock \
+  manomarks/visualizer</code></pre>
+</div>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Tipp</div>
+</td>
+<td class="content">
+Die URL bekommen Sie über 'echo "http://$(docker-machine ip $manager):9000"', bei mir <strong><a href="http://192.168.99.100:9000" class="bare">http://192.168.99.100:9000</a></strong>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Im nächsten Schritt schedulen wir einige Services, die nichts weiter machen ausser sich gegenseitig aufzurufen. Das Image, dass wir hierfür verwenden ist <em>effectivetrainings/rest-cascade</em>. Diese Image beinhaltet eine einfache Spring-Boot Anwendung mit einem Rest-Endpoint.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-bash" data-lang="bash">docker network create --driver overlay test <b class="conum">(1)</b>
+
+# erster service
+docker service create -p 8080:8080 --network test --name service-1 -e targetUri=http://service-2:8080 effectivetrainings/rest-cascade <b class="conum">(1)</b>
+
+for i in {2..4}; do
+    docker service create --network test  --replicas=2 --name "service-$i" -e targetUri=http://service-$(($i+1)):8080 effectivetrainings/rest-cascade
+done;
+
+docker service create --network test --name service-5 effectivetrainings/rest-cascade <b class="conum">(1)</b></code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<ol>
+<li>
+<p>Wir definieren ein Netzwerk, damit die Services im Schwarm über DNS kommunizieren können</p>
+</li>
+<li>
+<p>Über die Umgebungsvariable targetUri sagt man dem Service, dass er weitere Services aufrufen soll, wenn er angesprochen wird. Eine <em>Kaskade</em> eben.</p>
+</li>
+<li>
+<p>Der letzte Service beendet die Kaskade</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>Warten wir, bis alle Services gestartet sind.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="/assets/images/chaos_testing/rest-cascade.png" alt="Swarm Nodes" width="800">
+</div>
+</div>
+<div class="paragraph">
+<p>Der einzige Service, der von außen angesprochen werden kann ist <em>node-1</em>, da nur dieser einen Port exposed. Der Service fungiert als unser Gateway.</p>
+</div>
+<div class="paragraph">
+<p>Rufen wir den Service mit einem einfachen <strong>cURL</strong> auf, sollte die Response uns sagen, welche Services in der Kommunikation beteiligt waren.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-bash" data-lang="bash">curl $(docker-machine ip node-1):8080
+
+{
+  "host": "d6d431be03f4",
+  "port": 8080,
+  "correlationId": null,
+  "responseInfo": {
+    "host": "d186a4430a59",
+    "port": 8080,
+    "correlationId": null,
+    "responseInfo": {
+      "host": "aa404c0b20eb",
+      "port": 8080,
+      "correlationId": null,
+      "responseInfo": {
+        "host": "9ba048210be9",
+        "port": 8080,
+        "correlationId": null,
+        "responseInfo": {
+          "host": "c57154d95c3c", <b class="conum">(1)</b>
+          "port": 8080,
+          "correlationId": null,
+          "responseInfo": null,
+          "msg": null
+        },
+        "msg": null
+      },
+      "msg": null
+    },
+    "msg": null
+  },
+  "msg": null
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<ol>
+<li>
+<p>Antworten aus Sicht des Aufrufers - in diesem Fall <em>service-4</em> ruft <em>service-5</em>. Die Antwort kam von Host <em>c57154d95c3c</em>.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>Zur Verifikation betrachten wir Service-5 etwas genauer.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-bash" data-lang="bash">docker inspect --format {{.Status.ContainerStatus}} $(docker service ps -q service-5)
+{c57154d95c3c8e3ba3954a53649c9c3d0550ad0d4ac5c64fb410a8efe7038270 7512 0}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Hier sehen wir, service-5 arbeitet tatsächlich mit der Container-ID <em>c57154d95c3c8e3ba3954a53649c9c3d0550ad0d4ac5c64fb410a8efe7038270</em>.</p>
+</div>
+<div class="paragraph">
+<p>Die Service bilden also akutell folgende Kaskade.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="/assets/images/chaos_testing/kaskade.png" alt="REST Kaskade" width="800">
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="resilient-software-willkommen-im-chaos">Resilient Software - Willkommen im Chaos</h3>
+<div class="paragraph">
+<p>Was passiert, wenn wir einen Service in der Kaskade herunterfahren? Beispielsweise Node-3.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-bash" data-lang="bash">docker service rm service-3</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Setzen wir anschließend erneut einen Call gegen das Gateway ab.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-bash" data-lang="bash">curl $(docker-machine ip node-1):8080
+
+{
+  "host": "d6d431be03f4",
+  "port": 8080,
+  "correlationId": null,
+  "responseInfo": {
+    "host": "65ec48cebf45",
+    "port": 8080,
+    "correlationId": null,
+    "responseInfo": null,
+    "msg": "Execption: I/O error on GET request for \"http://service-3:8080\": service-3; nested exception is java.net.UnknownHostException: service-3"
+  },
+  "msg": null
+}%</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Die Anwendung funktioniert immer noch, zumindest <em>teilweise</em>.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="/assets/images/chaos_testing/kaskade_fehler.png" alt="REST Kaskade" width="800">
+</div>
+</div>
+<div class="paragraph">
+<p>Bringen wir den Service-3 wieder hoch.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-bash" data-lang="bash"> docker service create --network test  --replicas=2 --name "service-3" -e targetUri=http://service-4:8080 effectivetrainings/rest-cascade</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="pumba-chaos">Pumba Chaos</h3>
+<div class="paragraph">
+<p>Die Simian-Army von Netflix ist spezialisiert auf AWS. Im Dockerumfeld gibt es ein schönes kleines Tool namens <a href="http://blog.terranillius.com/post/pumba_docker_chaos_testing/"><strong>Pumba</strong></a>, das die Chaos-Konzepte auch in die Docker-Welt bringt.</p>
+</div>
+<div class="paragraph">
+<p>Pumba bietet hierbei ganz verschiedene Möglichkeiten, die <em>heile</em> Welt durcheinanderzubringen.</p>
+</div>
+<div class="paragraph">
+<p>Beispielsweise können wir Pumba anweisen, auf jedem Knoten durch Zufall irgendwelche Container herunterzufahren.
+Hierfür starten wir Pumba als Task auf jedem Knoten (<strong>--mode global</strong>) und weisen es an, Container zu stoppen (<strong>kill</strong>)</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-bash" data-lang="bash">docker service create --name pumba --mode=global  --mount=type=bind,src=/var/run/docker.sock,dst=/var/run/docker.sock gaiaadm/pumba:master pumba --random --interval 20s kill --signal SIGTERM</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Ein kleines Video dass <strong>Pumba vs. Swarm</strong> in Aktion zeigt gibts auf Youtube.</p>
+</div>
+<div class="videoblock">
+<div class="content">
+<iframe src="https://www.youtube.com/embed/fWUrfCtvQt8?rel=0" frameborder="0" allowfullscreen></iframe>
+</div>
+</div>
+<div class="sect3">
+<h4 id="pumba-chaos-langsame-verbindung">Pumba Chaos - Langsame Verbindung</h4>
+<div class="paragraph">
+<p>Pumba kann aber noch mehr Chaos stiften. Wir haben schon simuliert, dass unsere Anwendung <em>so gut eben möglich</em> mit Service-Ausfällen umgehen kann.
+Was passiert, wenn Services beispielsweise einfach sehr lange brauchen um zu antworten? Mit Docker einfach simulierbar, indem Container pausiert werden.</p>
+</div>
+<div class="paragraph">
+<p>Pumba kann das auch.</p>
+</div>
+<div class="paragraph">
+<p>Um die Ergebnisse vergleichen zu können entfernen wir Pumba zunächst wieder und machen einen einfachen Load-Test gegen den <em>gesunden</em> Cluster.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-bash" data-lang="bash">eval $(docker-machine env node-1)
+docker service rm pumba</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Anschließend entfernen wir alle Replicas, um später auch den Effekt von Replicas bei Timeouts zu beobachten.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-bash" data-lang="bash">for i in {2..4}; do
+  docker service update --replicas=1 service-$i
+done;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Jetzt weisen wir Pumba an, statt Container zu stoppen, diese einfach für jeweils 3 Sekunden zu pausieren. Da wir eine Kaskade an Service Calls haben kann sich das zu einem beachtlichen Delay entwickeln.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-bash" data-lang="bash">docker service create --name pumba --mode=global  --mount=type=bind,src=/var/run/docker.sock,dst=/var/run/docker.sock gaiaadm/pumba:master pumba --random --interval 5s pause --duration 3s</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Idealerweise testen wir das System direkt, indem wir es ein wenig unter Last setzen. Das geht ganz einfach mit dem Image <em>effectivetrainings/docker-stress</em>, was intern nichts weiter nutzt als Apache Bench.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-bash" data-lang="bash">docker run effectivetrainings/docker-stress -n 10000 -c 4 http://192.168.99.100:8080/ <b class="conum">(1)</b></code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<ol>
+<li>
+<p>Wir feuern 10.000 Requests mit 4 Threads auf das Gateway ab.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>Der Test mit 10.000 Requests dauert auf meinem Rechner ca. 1:40 Minuten. Hier das Ergebnis.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-bash" data-lang="bash">Connection Times (ms)
+              min  mean[+/-sd] median   max
+Connect:        0   15 116.8      1    1004
+Processing:     7   25  11.4     22     148
+Waiting:        7   24  11.4     21     147
+Total:          7   39 115.6     23    1030
+
+Percentage of the requests served within a certain time (ms)
+  50%     23
+  66%     27
+  75%     30
+  80%     32
+  90%     40
+  95%     51
+  98%     76
+  99%   1001
+ 100%   1030 (longest request)</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>98% der Requests wurden in weniger als 76 ms bearbeitet. 30 Requests waren auffällig langsam. Ursache unklar.</p>
+</div>
+<div class="paragraph">
+<p>Starten wir Pumba und lassen alle 5 Sekunden einen zufälligen Container pro Host 3 Sekunden pausieren.
+Die Wahrscheinlichkeit auf einen pausierten Host zu treffen ist also je nach Verteilung der Services auf die nodes recht hoch.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-bash" data-lang="bash">docker service create --name pumba --mode=global  --mount=type=bind,src=/var/run/docker.sock,dst=/var/run/docker.sock gaiaadm/pumba:master pumba --random --interval 5s pause --duration 3s</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Wir lassen den Stress-Test nochmal laufen.
+Nach der Verteilung der Node (3 Container pro Cluster) liegt die Wahrscheinlichkeit, einen <em>langsamen</em> Knoten zu treffen bei 30%.
+Die Wahrscheinlichkeit zwei langsame Knoten zu treffen bei ca 9% und alle drei Knoten bei rund 3%.</p>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Achtung</div>
+</td>
+<td class="content">
+Die Erwartung wäre also, ca. 60% der Requests sollten im Normbereich liegen, 30% der Requests durchschnittlich 3 Sekunden dauern und ein kleiner Bereich sollte sehr lange dauern (&gt;= 6 Sekunden).
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Der Testlauf braucht unglaubliche 17:49.38 Minuten.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-bash" data-lang="bash">Requests per second:    9.35 [#/sec] (mean)
+Time per request:       427.622 [ms] (mean)
+Time per request:       106.905 [ms] (mean, across all concurrent requests)
+
+Percentage of the requests served within a certain time (ms)
+  50%     31
+  66%     43
+  75%     53
+  80%     62
+  90%     98
+  95%   4795
+  98%   5831
+  99%   7691
+ 100%  12668 (longest request)</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Tatsächlich sehen wir, dass immer noch 90% der Requests in weniger als 100 ms verarbeitet. 5% der Requests brauchten knapp 5 Sekunden, 1% sogar mehr als 7. der länger Request benötigt 12 Sekunden, hat also evtl. alle drei pausierten Container getroffen.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="replicas">Replicas</h4>
+<div class="paragraph">
+<p>Wir wiederholen das Experiment und geben jetzt aber allen Services jeweils zwei Replicas, wir halbieren damit also die Wahrscheinlichkeit einen <em>langsamen</em> Node zu treffen.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-bash" data-lang="bash">for i in {1..5}; do
+   docker service update --replicas=2 service-$i
+done</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Starten wir den Stresstest erneut mit denselben Parametern.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-bash" data-lang="bash">docker run effectivetrainings/docker-stress -n 10000 -c 4 http://192.168.99.100:8080/
+
+
+Requests per second:    3.18 [#/sec] (mean)
+Time per request:       1257.195 [ms] (mean)
+Time per request:       314.299 [ms] (mean, across all concurrent requests)
+
+Percentage of the requests served within a certain time (ms)
+  50%     14
+  66%     23
+  75%   1069
+  80%   2447
+  90%   4973
+  95%   7487
+  98%  10007
+  99%  10015
+ 100%  14992 (longest request)</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Nur 75% der Requests konnten unter einer Sekunde ausgeführt werden, 2% (immerhin 200 Requests) brauchten mehr als 10 Sekunden für die Ausführung.</p>
+</div>
+<div class="paragraph">
+<p>Die Erklärung dürfte im Round-Robin Loadbalancing liegen, das sich anscheinend sehr negativ auf die Performance auswirkt, rechnerisch belegen kann ich das aber nicht.</p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="pumba-chaos-netzwerkproblem">Pumba Chaos - Netzwerkproblem</h3>
+<div class="paragraph">
+<p>Ein sehr sehr spannendes Thema ist für mich der dritte Abschnitt. Dank des <em>Container Network Models</em> von Docker kann man sehr spannende Dinge mit dem Netzwerk machen - beispielsweise in den Traffic eingreifen.</p>
+</div>
+<div class="paragraph">
+<p>Pumba bietet auch hierfür einige spannende Werkzeuge.</p>
+</div>
+<div class="paragraph">
+<p>Mit <a href="http://blog.terranillius.com/post/pumba_docker_chaos_testing/#network-emulation-netem-command"><strong>pumba netem</strong></a> können wir:
+- Pakete verwerfen
+- Pakete verzögern
+- Pakete neu ordnen
+- Pakete duplizieren</p>
+</div>
+<div class="paragraph">
+<p>Spielen wir das Experiment noch ein letztes Mal durch, starten Pumba und lassen es alle 5 Sekunden für zwei Sekunden 5% der Netzwerkpakete verwerfen.</p>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Achtung</div>
+</td>
+<td class="content">
+Achtung, damit das funktioniert muss das Tool <em>tc</em> im Container installiert sein. Typischerweise kommt das mit dem Paket iproute2.
+</td>
+</tr>
+</table>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-bash" data-lang="bash"># wieder ohne replicas
+for i in {1..5}; do
+   docker service update --replicas=2 service-$i
+done
+
+#remove pumba
+docker service rm pumba
+
+#restart with new configuration
+docker service create --name pumba --mode=global  --mount=type=bind,src=/var/run/docker.sock,dst=/var/run/docker.sock gaiaadm/pumba:master pumba --debug --random --interval 5s netem --duration 2s loss --percent 5</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Ich kann nicht abschätzen, ob das überhaupt irgendwelche Auswirkungen haben wird. Starten wir den Stresstest erneut und vergleichen mit der ursprünglichen Annahme.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-bash" data-lang="bash">docker run effectivetrainings/docker-stress -n 10000 -c 4 http://192.168.99.100:8080/
+
+Time per request:       82.795 [ms] (mean)
+Time per request:       20.699 [ms] (mean, across all concurrent requests)
+
+Percentage of the requests served within a certain time (ms)
+  50%     23
+  66%     30
+  75%     35
+  80%     40
+  90%     54
+  95%     76
+  98%    243
+  99%   1014
+ 100%  10225 (longest request)
+
+Complete requests:      10000
+Failed requests:        3880</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Der Testlauf dauerte ca. 3:40min.</p>
+</div>
+<div class="paragraph">
+<p>Starten wir Pumba erneut aber diesmal mit 50% Loss.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-bash" data-lang="bash">#remove pumba
+docker service rm pumba
+
+#restart with new configuration
+docker service create --name pumba --mode=global  --mount=type=bind,src=/var/run/docker.sock,dst=/var/run/docker.sock gaiaadm/pumba:master pumba --debug --random --interval 5s netem --duration 2s loss --percent 50
+
+docker run effectivetrainings/docker-stress -n 10000 -c 4 http://192.168.99.100:8080/
+
+Complete requests:      10000
+Failed requests:        9329 <b class="conum">(1)</b>
+   (Connect: 0, Receive: 0, Length: 9329, Exceptions: 0)
+
+Percentage of the requests served within a certain time (ms)
+  50%     18
+  66%     25
+  75%     32
+  80%     37
+  90%     58
+  95%     98
+  98%   1018
+  99%   3006
+ 100%  12490 (longest request)</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Die Fehlerrate ist verheerend</p>
+</div>
+<hr>
+<div class="sect3">
+<h4 id="fazit">Fazit</h4>
+<div class="paragraph">
+<p>Chaos-Testing macht Spaß. Mit <strong>Pumba</strong> lassen sich erstaunliche Dinge machen.
+Stress-Testing / Chaos-Testing macht definitiv Sinn. Ich würde es wahrscheinlich nicht in Produktion machen - wohl aber beispielsweise auf einer Testumgebung.</p>
+</div>
+<hr>
+</div>
+<div class="sect3">
+<h4 id="links">Links</h4>
+<div class="paragraph">
+<p><a href="https://hub.docker.com/r/effectivetrainings/rest-cascade/">Rest Kaskade Docker Image</a></p>
+</div>
+<div class="paragraph">
+<p><a href="https://hub.docker.com/r/effectivetrainings/docker-stress/">docker stress test image</a></p>
+</div>
+<hr>
+</div>
+<div class="sect3">
+<h4 id="docker-training">Docker Training</h4>
+<div class="paragraph">
+<p><strong>Wollen Sie mehr erfahren?</strong>
+Ich biete <a href="http://www.effectivetrainings.de/html/workshops/effective_docker_workshop.php">Consulting / Training</a> für Docker. Schauen Sie doch mal vorbei!</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+        </div>
+
+        <!-- End Main Content -->
+
+        <!-- Sidebar -->
+
+        <aside class="col-sm-3 col-sm-offset-1 blog-sidebar">
+
+            <!-- Footer -->
+            <h5>Posts</h5>
+
+            <ul id="all-posts" class="posts nav">
+                
+                <li><a href="/pumba-chaos-testing/"><span class="post-date"> 06.01.2017</span> Wie Resilient ist meine Software</a></li>
+                
+                <li><a href="/docker-swarm-health-checks/"><span class="post-date"> 04.01.2017</span> Health Checks mit Docker Swarm Mode</a></li>
+                
+                <li><a href="/docker-healthchecks/"><span class="post-date"> 03.01.2017</span> Health Checks mit Docker, Spring Boot und Actuator</a></li>
+                
+            </ul>
+
+            <div class="sidebar-well">
+
+                <h5>Über mich</h5>
+
+                <p>Ich bin Martin. Freiberuflicher Softwareentwickler / Consultant / Trainer. </p>
+                Verteilte Systeme, Resilient Software und Craftmanship.
+                10+ Jahre Erfahrung, <a
+                    href="http://www.amazon.de/gp/product/B00HXURPHG/ref=as_li_qf_sp_asin_tl?ie=UTF8&camp=1638&creative=6742&creativeASIN=B00HXURPHG&linkCode=as2&tag=splitshadewor-21">Buch-Autor</a>,
+                Git-Trainer, Docker-Trainer, Daddy.
+            </div>
+
+        </aside>
+
+        <!-- End Sidebar -->
+    </div>
+    <!-- End Main Content and Sidebar -->
+
+    <footer class="row">
+        <div class="large-12 columns">
+            <hr/>
+            <div class="row">
+                <div class="large-12 columns">
+                    
+
+<div id="disqus_thread"></div>
+    <script type="text/javascript">
+        /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+        var disqus_shortname = 'perfectlyrandom'; // required: replace example with your forum shortname
+        // var disqus_developer = 1; // Comment out when the site is live
+        var disqus_identifier = "/pumba-chaos-testing/";
+
+        /* * * DON'T EDIT BELOW THIS LINE * * */
+        (function() {
+            var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    <a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+
+
+<div class="effective_green">
+@2017 www.effectivetrainings.de
+</div>
+
+                </div>
+            </div>
+        </div>
+    </footer>
+    <script>
+        $(document).foundation();
+    </script>
+    <script>
+        $(document).foundation();
+
+        var doc = document.documentElement;
+        doc.setAttribute('data-useragent', navigator.userAgent);
+    </script>
+
+</div>
+<script id="dsq-count-scr" src="//effective-docker-github-io.disqus.com/count.js" async></script>
+</bod
+</html>
