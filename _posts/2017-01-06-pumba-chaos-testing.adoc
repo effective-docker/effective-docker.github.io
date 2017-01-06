@@ -13,7 +13,7 @@ excerpt_separator: // excerpt
 :warning-caption: Warnung
 :important-caption: Wichtig
 
-=== Chaos Testing
+== Chaos Testing
 
 In verteilten Systemen können wir Fehler niemals ausschließen. Die möglichen Fehlerquellen sind fast unendlich.
 
