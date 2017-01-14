@@ -1,0 +1,33 @@
+---
+layout: post
+title: Effective Docker Cheatsheet
+shortTitle: All you ever need to know about Docker..
+documentationExpanded: false
+comments: true
+postsExpanded: true
+categories: <categories>
+excerpt_separator: // excerpt
+example-caption: Beispiel
+caution-caption: Achtung
+root: ../../
+---
+== Docker Cheat Sheet
+:tip-caption: Tipp
+:caution-caption: Achtung
+:question-caption: Frage
+:warning-caption: Warnung
+:important-caption: Wichtig
+
+// excerpt
+
+Ich habe das http://www.effectivetrainings.de/training/docker/effective-trainings-docker-cheatsheet.pdf[Docker Handout] erstellt. Eigentlich sollte hier alles drauf sein, was man braucht um effektiv mit *Docker* arbeiten zu können.
+
+Solltet ihr ein gedrucktes Exemplar wollen kann ich das http://www.effectivetrainings.de/html/workshops/effective_docker_workshop.php[Docker Training] empfehlen.
+'''
+
+
+==== Docker Training
+
+*Wollen Sie mehr erfahren?*
+Ich biete http://www.effectivetrainings.de/html/workshops/effective_docker_workshop.php[Consulting / Training] für Docker. Schauen Sie doch mal vorbei!
+
