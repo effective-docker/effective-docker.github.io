@@ -7,6 +7,22 @@
 		<atom:link href="https://effective-docker.github.io/feed.xml" rel="self" type="application/rss+xml" />
 		
 			<item>
+				<title>Effective Docker Cheatsheet</title>
+				
+				
+					<description>&lt;div class=&quot;sect1&quot;&gt;
+&lt;h2 id=&quot;docker-cheat-sheet&quot;&gt;Docker Cheat Sheet&lt;/h2&gt;
+&lt;div class=&quot;sectionbody&quot;&gt;
+
+&lt;/div&gt;
+&lt;/div&gt;</description>
+				
+				<pubDate>Fri, 13 Jan 2017 00:00:00 +0000</pubDate>
+				<link>https://effective-docker.github.io/effective-docker-cheatsheet/</link>
+				<guid isPermaLink="true">https://effective-docker.github.io/effective-docker-cheatsheet/</guid>
+			</item>
+		
+			<item>
 				<title>Chaos Tests</title>
 				
 				
