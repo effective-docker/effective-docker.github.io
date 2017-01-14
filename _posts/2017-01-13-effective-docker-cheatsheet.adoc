@@ -18,11 +18,13 @@ root: ../../
 :warning-caption: Warnung
 :important-caption: Wichtig
 
-// excerpt
-
 Ich habe das http://www.effectivetrainings.de/training/docker/effective-trainings-docker-cheatsheet.pdf[Docker Handout] erstellt. Eigentlich sollte hier alles drauf sein, was man braucht um effektiv mit *Docker* arbeiten zu können.
 
+// excerpt
+
+
 Solltet ihr ein gedrucktes Exemplar wollen kann ich das http://www.effectivetrainings.de/html/workshops/effective_docker_workshop.php[Docker Training] empfehlen.
+
 '''
 
 
