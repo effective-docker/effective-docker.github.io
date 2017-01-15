@@ -1,0 +1,191 @@
+---
+layout: post
+title: Daily Docker inspect
+shortTitle: Docker inspect für jeden Tag
+documentationExpanded: false
+comments: true
+postsExpanded: true
+categories: <categories>
+excerpt_separator: // excerpt
+example-caption: Beispiel
+caution-caption: Achtung
+root: ../../
+---
+== Docker Health Checks
+:tip-caption: Tipp
+:caution-caption: Achtung
+:question-caption: Frage
+:warning-caption: Warnung
+:important-caption: Wichtig
+
+=== TLDR;
+
+Docker inspect erlaubt es uns, einen Blick in die Tiefen und Untiefen eines Containers zu werfen.
+
+Hierfür starten wir zunächst einen einfachen Container im eigenen Netzwerk, der nichts tut außer warten.
+
+[source, bash]
+----
+docker network create -d bridge test-bridge
+docker volume create test
+
+docker run -d -p 8080:8080 -v test:/test --network test-bridge --name runner effectivetrainings/runner
+# das Portmapping ist völlig unnötig, dient uns nur zur Veranschaulichung von Ports in der inspect-Ausgabe.
+----
+
+Inspizieren wir den laufenden Container, bekommen wir eine ganze Menge Informationen, für die wir üblicherweise gar keine Verwendung haben. Das geht besser.
+
+// excerpt
+
+[source, bash]
+----
+docker inspect runner
+[
+    {
+        "Id": "cfa659b16d3849515cb32f73d8ec6c16bf0dc291a9fc2e56f8186d6ffb57996c",
+        "Created": "2017-01-15T11:18:46.862670763Z",
+        "Path": "/bin/sh",
+        "Args": [
+            "-c",
+            "sleep 100000000000000000"
+        ],
+        "State": {
+            "Status": "running",
+            "Running": true,
+            "Paused": false,
+            "Restarting": false,
+            "OOMKilled": false,
+
+----
+
+Natürlich können wir mit Linux-Boardmitteln wie *grep* arbeiten.
+
+Beispielsweise im folgenden um die IP-Addresse des Containers zu ermitteln.
+[source, bash]
+----
+docker inspect runner | grep -i ipaddress
+     "SecondaryIPAddresses": null,
+     "IPAddress": "",
+          "IPAddress": "172.18.0.2",
+
+----
+
+Ideal ist das nicht.. die Ausgabe ist nicht eindeutig und kann beispielsweise keinesfalls maschinell verarbeitet werden.
+Wie viele Befehle unterstützt _docker inspect_ auch Go-Templates.
+
+'''
+
+=== Go Templates
+
+Go Templates erlauben das dynamische Formatieren der Ausgabe anhand von einem Template-String. Es gibt schon dutzende Artikel zu diesem Thema. Dieser Artikel möchte nicht auf die Details eingehen, sondern einige Templates vorstellen, die ich tagtäglich verwende.
+
+Wollen Sie tiefer in das Thema Templates einsteigen emfehle ich folgende Artikel:
+
+
+https://docs.docker.com/engine/reference/commandline/inspect/ [Docker Inspect Dokumentation]
+
+http://container-solutions.com/docker-inspect-template-magic/[Template Magic / ContainerSolutions]
+
+==== Daily Templates
+
+===== Container Status:
+[source, bash]
+----
+docker inspect -f "{{ .State.Status }}" runner
+
+running
+----
+
+===== Port Bindings
+[source, bash]
+----
+docker inspect -f "{{json .HostConfig.PortBindings }}" runner
+
+{"8080/tcp":[{"HostIp":"","HostPort":"8080"}]}
+
+docker inspect -f "{{ .Config.ExposedPorts }}" runner
+
+{"8080/tcp":{}}
+
+# Portbindings aller laufender Container
+docker ps -q | xargs docker inspect -f "{{json .HostConfig.PortBindings }}"
+----
+
+==== Environment
+[source, bash]
+----
+docker inspect -f "{{ json .Config.Env}}" runner
+
+["no_proxy=splunk","PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"]
+----
+
+===== Hostname
+[source, bash]
+----
+docker inspect -f "{{ .Config.Hostname }}" runner
+
+cfa659b16d38
+----
+
+===== Netzwerke
+
+[source, bash]
+----
+docker inspect -f "{{ json .NetworkSettings.Networks}}" runner
+
+{
+  "test-bridge": {
+    "IPAMConfig": null,
+    "Links": null,
+    "Aliases": [
+      "cfa659b16d38"
+    ],
+    "NetworkID": "2f6b0ad02123b64b4e921a007f8cf972942fa18c224b18dd4744232fe87fd4d3",
+    "EndpointID": "39aaedf2bc7196952783282f64789df15968c6ce3ce0dcb15dbb554739a4c219",
+    "Gateway": "172.18.0.1",
+    "IPAddress": "172.18.0.2",
+    "IPPrefixLen": 16,
+    "IPv6Gateway": "",
+    "GlobalIPv6Address": "",
+    "GlobalIPv6PrefixLen": 0,
+    "MacAddress": "02:42:ac:12:00:02"
+  }
+}
+----
+===== Mounts
+
+[source, bash]
+----
+docker inspect -f "{{ json .Mounts}}"  runner
+[
+  {
+    "Type": "volume",
+    "Name": "test",
+    "Source": "/var/lib/docker/volumes/test/_data",
+    "Destination": "/test",
+    "Driver": "local",
+    "Mode": "z",
+    "RW": true,
+    "Propagation": ""
+  }
+]
+
+----
+
+'''
+
+==== Fazit
+
+Es lohnt sich, sich ein wenig mit *Go-Templates* zu beschäftigen. Es ist noch viel mehr möglich, aber alleine mit den paar einfachen Templates hier lassen sich schon die meisten Informationen schnell ermitteln, die man so tagtäglich braucht.
+
+'''
+
+==== Links
+
+'''
+
+==== Docker Training
+
+*Wollen Sie mehr erfahren?*
+Ich biete http://www.effectivetrainings.de/html/workshops/effective_docker_workshop.php[Consulting / Training] für Docker. Schauen Sie doch mal vorbei!
+
