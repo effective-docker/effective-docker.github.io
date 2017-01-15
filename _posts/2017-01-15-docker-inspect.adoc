@@ -29,7 +29,7 @@ Hierfür starten wir zunächst einen einfachen Container im eigenen Netzwerk, de
 docker network create -d bridge test-bridge
 docker volume create test
 
-docker run -d -p 8080:8080 -v test:/test --network test-bridge --name runner effectivetrainings/runner
+docker run -d -p 8080:8080 -v test:/test -v /tmp:/tmp/test --network test-bridge --name runner effectivetrainings/runner
 # das Portmapping ist völlig unnötig, dient uns nur zur Veranschaulichung von Ports in der inspect-Ausgabe.
 ----
 
@@ -79,12 +79,7 @@ Wie viele Befehle unterstützt _docker inspect_ auch Go-Templates.
 
 Go Templates erlauben das dynamische Formatieren der Ausgabe anhand von einem Template-String. Es gibt schon dutzende Artikel zu diesem Thema. Dieser Artikel möchte nicht auf die Details eingehen, sondern einige Templates vorstellen, die ich tagtäglich verwende.
 
-Wollen Sie tiefer in das Thema Templates einsteigen emfehle ich folgende Artikel:
-
-
-https://docs.docker.com/engine/reference/commandline/inspect/[Docker Inspect Dokumentation]
-
-http://container-solutions.com/docker-inspect-template-magic/[Template Magic / ContainerSolutions]
+Wollen Sie tiefer in das Thema Templates einsteigen emfehle ich die Artikel in der Links-Sektion.
 
 ==== Daily Templates
 
@@ -154,6 +149,7 @@ docker inspect -f "{{ json .NetworkSettings.Networks}}" runner
 ----
 ===== Mounts
 
+Da wir zwei Volumes haben (Host-Binding / Volume) gibt es zwei Mounts, eines vom Typ _Volume_, eines vom Typ _bind_.
 [source, bash]
 ----
 docker inspect -f "{{ json .Mounts}}"  runner
@@ -167,9 +163,28 @@ docker inspect -f "{{ json .Mounts}}"  runner
     "Mode": "z",
     "RW": true,
     "Propagation": ""
+  },
+  {
+    "Type": "bind",
+    "Source": "/tmp",
+    "Destination": "/tmp/test",
+    "Mode": "",
+    "RW": true,
+    "Propagation": ""
   }
 ]
+----
 
+Wollen wir von jedem Element in der Liste nur bestimmte Informationen, beispielsweise eine Liste von Mappings (src => target) geht das mit dieser Syntax.
+
+[source, bash]
+----
+docker inspect -f '{{ range .Mounts }}{{.Source}}=>{{.Destination}},{{end}}' runner
+
+/tmp=>/tmp/test /var/lib/docker/volumes/test/_data=>/test,
+
+# Oder mit expliziter Variablendeklaration
+docker inspect -f '{{ range $index, $element := .Mounts }}{{$element.Source}}=>{{$element.Destination}}{{end}}' runner
 ----
 
 '''
@@ -181,6 +196,15 @@ Es lohnt sich, sich ein wenig mit *Go-Templates* zu beschäftigen. Es ist noch v
 '''
 
 ==== Links
+
+
+https://golang.org/pkg/text/template/[Go Templates Syntax]
+
+https://gohugo.io/templates/go-templates/[Go Templates Artikel]
+
+https://docs.docker.com/engine/reference/commandline/inspect[Docker Inspect Dokumentation]
+
+http://container-solutions.com/docker-inspect-template-magic/[Template Magic / ContainerSolutions Blog]
 
 '''
 
