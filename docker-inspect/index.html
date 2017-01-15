@@ -170,7 +170,7 @@
 <pre class="highlight"><code class="language-bash" data-lang="bash">docker network create -d bridge test-bridge
 docker volume create test
 
-docker run -d -p 8080:8080 -v test:/test --network test-bridge --name runner effectivetrainings/runner
+docker run -d -p 8080:8080 -v test:/test -v /tmp:/tmp/test --network test-bridge --name runner effectivetrainings/runner
 # das Portmapping ist völlig unnötig, dient uns nur zur Veranschaulichung von Ports in der inspect-Ausgabe.</code></pre>
 </div>
 </div>
@@ -223,13 +223,7 @@ Wie viele Befehle unterstützt <em>docker inspect</em> auch Go-Templates.</p>
 <p>Go Templates erlauben das dynamische Formatieren der Ausgabe anhand von einem Template-String. Es gibt schon dutzende Artikel zu diesem Thema. Dieser Artikel möchte nicht auf die Details eingehen, sondern einige Templates vorstellen, die ich tagtäglich verwende.</p>
 </div>
 <div class="paragraph">
-<p>Wollen Sie tiefer in das Thema Templates einsteigen emfehle ich folgende Artikel:</p>
-</div>
-<div class="paragraph">
-<p><a href="https://docs.docker.com/engine/reference/commandline/inspect/">Docker Inspect Dokumentation</a></p>
-</div>
-<div class="paragraph">
-<p><a href="http://container-solutions.com/docker-inspect-template-magic/">Template Magic / ContainerSolutions</a></p>
+<p>Wollen Sie tiefer in das Thema Templates einsteigen emfehle ich die Artikel in der Links-Sektion.</p>
 </div>
 <div class="sect3">
 <h4 id="daily-templates">Daily Templates</h4>
@@ -309,6 +303,9 @@ cfa659b16d38</code></pre>
 </div>
 <div class="sect4">
 <h5 id="mounts">Mounts</h5>
+<div class="paragraph">
+<p>Da wir zwei Volumes haben (Host-Binding / Volume) gibt es zwei Mounts, eines vom Typ <em>Volume</em>, eines vom Typ <em>bind</em>.</p>
+</div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlight"><code class="language-bash" data-lang="bash">docker inspect -f "{{ json .Mounts}}"  runner
@@ -322,8 +319,29 @@ cfa659b16d38</code></pre>
     "Mode": "z",
     "RW": true,
     "Propagation": ""
+  },
+  {
+    "Type": "bind",
+    "Source": "/tmp",
+    "Destination": "/tmp/test",
+    "Mode": "",
+    "RW": true,
+    "Propagation": ""
   }
 ]</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Wollen wir von jedem Element in der Liste nur bestimmte Informationen, beispielsweise eine Liste von Mappings (src &#8658; target) geht das mit dieser Syntax.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-bash" data-lang="bash">docker inspect -f '{{ range .Mounts }}{{.Source}}=&gt;{{.Destination}},{{end}}' runner
+
+/tmp=&gt;/tmp/test /var/lib/docker/volumes/test/_data=&gt;/test,
+
+# Oder mit expliziter Variablendeklaration
+docker inspect -f '{{ range $index, $element := .Mounts }}{{$element.Source}}=&gt;{{$element.Destination}}{{end}}' runner</code></pre>
 </div>
 </div>
 <hr>
@@ -338,7 +356,19 @@ cfa659b16d38</code></pre>
 </div>
 <div class="sect3">
 <h4 id="links">Links</h4>
-<hr>
+<div class="paragraph">
+<p><a href="https://golang.org/pkg/text/template/">Go Templates Syntax</a></p>
+</div>
+<div class="paragraph">
+<p><a href="https://gohugo.io/templates/go-templates/">Go Templates Artikel</a></p>
+</div>
+<div class="paragraph">
+<p><a href="https://docs.docker.com/engine/reference/commandline/inspect">Docker Inspect Dokumentation</a></p>
+</div>
+<div class="paragraph">
+<p><a href="http://container-solutions.com/docker-inspect-template-magic/">Template Magic / ContainerSolutions Blog</a>
+'''</p>
+</div>
 </div>
 <div class="sect3">
 <h4 id="docker-training">Docker Training</h4>

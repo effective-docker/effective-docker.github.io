@@ -175,7 +175,7 @@ Hierfür starten wir zunächst einen einfachen Container im eigenen Netzwerk, de
 <pre class="highlight"><code class="language-bash" data-lang="bash">docker network create -d bridge test-bridge
 docker volume create test
 
-docker run -d -p 8080:8080 -v test:/test --network test-bridge --name runner effectivetrainings/runner
+docker run -d -p 8080:8080 -v test:/test -v /tmp:/tmp/test --network test-bridge --name runner effectivetrainings/runner
 # das Portmapping ist völlig unnötig, dient uns nur zur Veranschaulichung von Ports in der inspect-Ausgabe.</code></pre>
 </div>
 </div>
