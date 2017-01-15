@@ -158,6 +158,36 @@
             <ul>
             
                 <li class="excerpt">
+                    <span class="post-date"> 15.01.2017</span> <a href="/docker-inspect/">Daily Docker inspect</a>
+                    <div class="sect1">
+<h2 id="docker-health-checks">Docker Health Checks</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="tldr">TLDR;</h3>
+<div class="paragraph">
+Docker inspect erlaubt es uns, einen Blick in die Tiefen und Untiefen eines Containers zu werfen.
+</div>
+<div class="paragraph">
+Hierfür starten wir zunächst einen einfachen Container im eigenen Netzwerk, der nichts tut außer warten.
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-bash" data-lang="bash">docker network create -d bridge test-bridge
+docker volume create test
+
+docker run -d -p 8080:8080 -v test:/test --network test-bridge --name runner effectivetrainings/runner
+# das Portmapping ist völlig unnötig, dient uns nur zur Veranschaulichung von Ports in der inspect-Ausgabe.</code></pre>
+</div>
+</div>
+<div class="paragraph">
+Inspizieren wir den laufenden Container, bekommen wir eine ganze Menge Informationen, für die wir üblicherweise gar keine Verwendung haben. Das geht besser.
+</div>
+</div>
+</div>
+</div>
+                </li>
+              
+                <li class="excerpt">
                     <span class="post-date"> 13.01.2017</span> <a href="/effective-docker-cheatsheet/">Effective Docker Cheatsheet</a>
                     <div class="sect1">
 <h2 id="docker-cheat-sheet">Docker Cheat Sheet</h2>
@@ -297,6 +327,8 @@ Anwendungen zu deployen ist <em>einfach</em>, und Docker Container zu starten is
             <h5>Posts</h5>
 
             <ul id="all-posts" class="posts nav">
+                
+                <li><a href="/docker-inspect/"><span class="post-date"> 15.01.2017</span> Docker inspect für jeden Tag</a></li>
                 
                 <li><a href="/effective-docker-cheatsheet/"><span class="post-date"> 13.01.2017</span> All you ever need to know about Docker..</a></li>
                 

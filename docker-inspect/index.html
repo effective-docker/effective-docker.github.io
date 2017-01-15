@@ -5,7 +5,7 @@
 <head>
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Docker Swarm Health Checks</title>
+    <title>Daily Docker inspect</title>
 
 
     <meta name="description"
@@ -155,243 +155,189 @@
         <!-- Main Blog Content -->
         <div class="col-sm-8 blog-main" role="content">
             <div class="sect1">
-<h2 id="docker-swarm-mode-health-checks">Docker Swarm Mode Health Checks</h2>
+<h2 id="docker-health-checks">Docker Health Checks</h2>
 <div class="sectionbody">
 <div class="sect2">
 <h3 id="tldr">TLDR;</h3>
-<div class="ulist">
-<ul>
-<li>
-<p>Die Sourcen sind unter : <a href="https://github.com/effective-docker/docker-healthcheck.git" class="bare">https://github.com/effective-docker/docker-healthcheck.git</a></p>
-</li>
-<li>
-<p>Swarm Scheduler arbeitet mit den Container Health Checks</p>
-</li>
-<li>
-<p>Nur <em>healthy</em> Container werden geroutet.</p>
-</li>
-<li>
-<p>Nach drei fehlgeschlagenen Health-Checks wird ein Container neu gestartet (ggf. auch auf einem anderen Knoten)</p>
-</li>
-</ul>
+<div class="paragraph">
+<p>Docker inspect erlaubt es uns, einen Blick in die Tiefen und Untiefen eines Containers zu werfen.</p>
+</div>
+<div class="paragraph">
+<p>Hierfür starten wir zunächst einen einfachen Container im eigenen Netzwerk, der nichts tut außer warten.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-bash" data-lang="bash">docker network create -d bridge test-bridge
+docker volume create test
+
+docker run -d -p 8080:8080 -v test:/test --network test-bridge --name runner effectivetrainings/runner
+# das Portmapping ist völlig unnötig, dient uns nur zur Veranschaulichung von Ports in der inspect-Ausgabe.</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Inspizieren wir den laufenden Container, bekommen wir eine ganze Menge Informationen, für die wir üblicherweise gar keine Verwendung haben. Das geht besser.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-bash" data-lang="bash">docker inspect runner
+[
+    {
+        "Id": "cfa659b16d3849515cb32f73d8ec6c16bf0dc291a9fc2e56f8186d6ffb57996c",
+        "Created": "2017-01-15T11:18:46.862670763Z",
+        "Path": "/bin/sh",
+        "Args": [
+            "-c",
+            "sleep 100000000000000000"
+        ],
+        "State": {
+            "Status": "running",
+            "Running": true,
+            "Paused": false,
+            "Restarting": false,
+            "OOMKilled": false,</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Natürlich können wir mit Linux-Boardmitteln wie <strong>grep</strong> arbeiten.</p>
+</div>
+<div class="paragraph">
+<p>Beispielsweise im folgenden um die IP-Addresse des Containers zu ermitteln.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-bash" data-lang="bash">docker inspect runner | grep -i ipaddress
+     "SecondaryIPAddresses": null,
+     "IPAddress": "",
+          "IPAddress": "172.18.0.2",</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Ideal ist das nicht.. die Ausgabe ist nicht eindeutig und kann beispielsweise keinesfalls maschinell verarbeitet werden.
+Wie viele Befehle unterstützt <em>docker inspect</em> auch Go-Templates.</p>
 </div>
 <hr>
 </div>
 <div class="sect2">
-<h3 id="docker-swarm-mode">Docker Swarm Mode</h3>
+<h3 id="go-templates">Go Templates</h3>
 <div class="paragraph">
-<p>Im <a href="https://effective-docker.github.io/docker-healthchecks/">letzten Eintrag</a> haben wir uns mit <em>Health Checks</em> in Containern beschäftigt. Das alleine ist schon eine sehr wichtige Funktionalität, entwickelt ihr Potential allerdings erst in Zusammenarbeit mit einem Scheduler der das aktiv unterstützt. In diesem Artikel konzentrieren wir uns auf <strong>Docker Swarm im Swarm Mode (ab 1.12)</strong></p>
-</div>
-<div class="paragraph">
-<p>Swarm Mode ist das <em>neue</em> Swarm integriert in die Docker Engine - <em>nicht zu verwechseln</em> mit <a href="https://docs.docker.com/swarm/overview/">Docker Swarm (Standalone)</a>, was vor 1.12 aktuell war.</p>
+<p>Go Templates erlauben das dynamische Formatieren der Ausgabe anhand von einem Template-String. Es gibt schon dutzende Artikel zu diesem Thema. Dieser Artikel möchte nicht auf die Details eingehen, sondern einige Templates vorstellen, die ich tagtäglich verwende.</p>
 </div>
 <div class="paragraph">
-<p>Im folgenden arbeiten wir der Einfachheit halber mit VirtualBox und Docker-Machine.</p>
+<p>Wollen Sie tiefer in das Thema Templates einsteigen emfehle ich folgende Artikel:</p>
 </div>
 <div class="paragraph">
-<p>Zunächst setzen erstellen wir uns einen Stack mit 3 Nodes.</p>
+<p><a href="https://docs.docker.com/engine/reference/commandline/inspect/" class="bare">https://docs.docker.com/engine/reference/commandline/inspect/</a> [Docker Inspect Dokumentation]</p>
 </div>
-<div class="admonitionblock tip">
-<table>
-<tr>
-<td class="icon">
-<div class="title">Tipp</div>
-</td>
-<td class="content">
-Die Anzahl an Nodes im Schwarm sollte nach Möglichkeit ungerade sein, damit man einfache Mehrheiten bilden kann.
-</td>
-</tr>
-</table>
+<div class="paragraph">
+<p><a href="http://container-solutions.com/docker-inspect-template-magic/">Template Magic / ContainerSolutions</a></p>
 </div>
+<div class="sect3">
+<h4 id="daily-templates">Daily Templates</h4>
+<div class="sect4">
+<h5 id="container-status">Container Status:</h5>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-bash" data-lang="bash">for i in {1..3}; do
-    docker-machine create --driver=virtualbox swarm-node-$i
-done</code></pre>
+<pre class="highlight"><code class="language-bash" data-lang="bash">docker inspect -f "{{ .State.Status }}" runner
+
+running</code></pre>
 </div>
 </div>
-<div class="admonitionblock tip">
-<table>
-<tr>
-<td class="icon">
-<div class="title">Tipp</div>
-</td>
-<td class="content">
-Wenn wir die Maschinen mit <em>docker-machine</em> erstellen sind bereits alle Zertifikate richtig konfiguriert.
-</td>
-</tr>
-</table>
 </div>
-<div class="paragraph">
-<p>Zunächst prüfen wir, ob die Knoten korrekt erstellt und gestartet sind.</p>
-</div>
+<div class="sect4">
+<h5 id="port-bindings">Port Bindings</h5>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-bash" data-lang="bash">docker-machine ls
-swarm-node-1      -        virtualbox   Running   tcp://192.168.99.101:2376
-swarm-node-2      -        virtualbox   Running   tcp://192.168.99.102:2376
-swarm-node-3      -        virtualbox   Running   tcp://192.168.99.103:2376</code></pre>
+<pre class="highlight"><code class="language-bash" data-lang="bash">docker inspect -f "{{json .HostConfig.PortBindings }}" runner
+
+{"8080/tcp":[{"HostIp":"","HostPort":"8080"}]}
+
+docker inspect -f "{{ .Config.ExposedPorts }}" runner
+
+{"8080/tcp":{}}
+
+# Portbindings aller laufender Container
+docker ps -q | xargs docker inspect -f "{{json .HostConfig.PortBindings }}"</code></pre>
 </div>
 </div>
-<div class="paragraph">
-<p>Mit den einzelnen Knoten können wir uns jetzt über die <em>Docker Remote</em>-API verbinden.</p>
 </div>
-<div class="paragraph">
-<p>Wir machen die Knoten 1 und 2 zu <em>Swarm-Managern</em>.</p>
 </div>
+<div class="sect3">
+<h4 id="environment">Environment</h4>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-bash" data-lang="bash">#connect to node 1
-eval $(docker-machine env swarm-node-1)
+<pre class="highlight"><code class="language-bash" data-lang="bash">docker inspect -f "{{ json .Config.Env}}" runner
 
-docker swarm init --advertise-addr $(docker-machine ip swarm-node-1)
-
-# connect to node 2
-eval $(docker-machine env swarm-node-2) <b class="conum">(1)</b>
-
-
-# join swarm as worker
-docker swarm join --token &lt;token&gt; $(docker-machine ip swarm-node-1):2377 <b class="conum">(2)</b>
-
-# connect to node 3
-eval $(docker-machine env swarm-node-3)
-
-# join swarm as worker
-docker swarm join --token &lt;token&gt; $(docker-machine ip swarm-node-1):2377 <b class="conum">(3)</b>
-
-# promote node-2
-docker node promote swarm-node-2
-Node swarm-node-2 promoted to a manager in the swarm. <b class="conum">(4)</b>
-
-
-# status
-docker node ls
-ID                           HOSTNAME      STATUS  AVAILABILITY  MANAGER STATUS
-kr5m52gdhx3ky7enck5ifjd27    swarm-node-2  Ready   Active        Reachable
-qb2llmor6n5hogv3ql1pudl7d *  swarm-node-1  Ready   Active        Leader
-wr708u31k6uxogn0u66ykh61n    swarm-node-3  Ready   Active</code></pre>
+["no_proxy=splunk","PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"]</code></pre>
 </div>
 </div>
-<hr>
-<div class="paragraph">
-<p>Die Kommunikation im Swarm muss immer über einen Manager geschehen, denn nur Manager haben die Befugnis <em>Entscheidungen</em> treffen.</p>
-</div>
-</div>
-<div class="sect2">
-<h3 id="beispielanwendung">Beispielanwendung</h3>
-<div class="paragraph">
-<p>Wir arbeiten erneut mit der <em>einfachen</em> Health-Check Spring Boot Applikation aus dem letzten Artikel.</p>
-</div>
-<div class="paragraph">
-<p>Zusätzlich deployen wir den <a href="https://github.com/ManoMarks/docker-swarm-visualizer">Swarm-Visualizer</a> um den Schwarm zu sichtbar zu machen.</p>
-</div>
+<div class="sect4">
+<h5 id="hostname">Hostname</h5>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-bash" data-lang="bash">docker service create \
-  --name=viz \
-  --publish=9000:8080/tcp \
-  --constraint=node.role==manager \ <b class="conum">(1)</b>
-  --mount=type=bind,src=/var/run/docker.sock,dst=/var/run/docker.sock \
-  manomarks/visualizer</code></pre>
+<pre class="highlight"><code class="language-bash" data-lang="bash">docker inspect -f "{{ .Config.Hostname }}" runner
+
+cfa659b16d38</code></pre>
 </div>
 </div>
-<div class="colist arabic">
-<ol>
-<li>
-<p>Der Visualizer <strong>muss</strong> auf einem Manager laufen</p>
-</li>
-</ol>
 </div>
-<div class="paragraph">
-<p>Prüfen Sie mit <em>docker service ls</em> wann der Visualizer bereit ist.</p>
-</div>
+<div class="sect4">
+<h5 id="netzwerke">Netzwerke</h5>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-bash" data-lang="bash">docker service ls
-mbkr330h65kh  viz   replicated  0/1       manomarks/visualizer:latest</code></pre>
+<pre class="highlight"><code class="language-bash" data-lang="bash">docker inspect -f "{{ json .NetworkSettings.Networks}}" runner
+
+{
+  "test-bridge": {
+    "IPAMConfig": null,
+    "Links": null,
+    "Aliases": [
+      "cfa659b16d38"
+    ],
+    "NetworkID": "2f6b0ad02123b64b4e921a007f8cf972942fa18c224b18dd4744232fe87fd4d3",
+    "EndpointID": "39aaedf2bc7196952783282f64789df15968c6ce3ce0dcb15dbb554739a4c219",
+    "Gateway": "172.18.0.1",
+    "IPAddress": "172.18.0.2",
+    "IPPrefixLen": 16,
+    "IPv6Gateway": "",
+    "GlobalIPv6Address": "",
+    "GlobalIPv6PrefixLen": 0,
+    "MacAddress": "02:42:ac:12:00:02"
+  }
+}</code></pre>
 </div>
 </div>
-<div class="imageblock">
-<div class="content">
-<img src="/assets/images/swarm_health/swarm_visualizer.png" alt="Swarm Visualizer" width="600">
 </div>
-</div>
-<div class="paragraph">
-<p>Deployen Sie anschließend die Health-Applikation als Service mit zwei Replicas.</p>
-</div>
+<div class="sect4">
+<h5 id="mounts">Mounts</h5>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-bash" data-lang="bash">#connect to manager
-eval $(docker-machine env swarm-node-1)
-
-docker service create --health-cmd "curl -f http://localhost:8080/health || exit 1" --name health --replicas 2 -p 8080:8080 effectivetrainings/docker-health
-
-#status
-docker service ps viz
-ID         NAME   IMAGE                        NODE          DESIRED STATE CURRENT STATE
-ymzuujcd6awr  viz.1  manomarks/visualizer:latest  swarm-node-1  Running        Preparing</code></pre>
-</div>
-</div>
-<div class="imageblock">
-<div class="content">
-<img src="/assets/images/swarm_health/swarm_replicas.png" alt="Swarm Replicas" width="600">
+<pre class="highlight"><code class="language-bash" data-lang="bash">docker inspect -f "{{ json .Mounts}}"  runner
+[
+  {
+    "Type": "volume",
+    "Name": "test",
+    "Source": "/var/lib/docker/volumes/test/_data",
+    "Destination": "/test",
+    "Driver": "local",
+    "Mode": "z",
+    "RW": true,
+    "Propagation": ""
+  }
+]</code></pre>
 </div>
 </div>
 <hr>
 </div>
-<div class="sect2">
-<h3 id="docker-health-check">Docker Health Check</h3>
-<div class="paragraph">
-<p>Nachdem die Services deployt sind machen wir uns erneut die Möglichkeit zunutze, den Health-Status der Anwendung manuell zu setzen. Wir setzen eine Service-Instanz auf <em>unhealthy</em>.</p>
 </div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlight"><code class="language-bash" data-lang="bash">curl $(docker-machine ip node-3):8080/environment/health?status=false</code></pre>
-</div>
-</div>
-<div class="admonitionblock caution">
-<table>
-<tr>
-<td class="icon">
-<div class="title">Achtung</div>
-</td>
-<td class="content">
-Achtung, wir setzen hier die Umgebungsvariablen von <strong>Node-3</strong>. Es ist aber nicht definiert, welcher Container wirklich angesprochen wird. Das entscheidet Docker intern über den DNS-Server.
-</td>
-</tr>
-</table>
-</div>
-<div class="paragraph">
-<p>Docker Swarm überwacht ständig den Status der Services / Tasks im Cluster und re-scheduled Container wenn nötig.</p>
-</div>
-<div class="paragraph">
-<p>Standardmäßig versucht Swarm <strong>dreimal</strong> den Health-Check durchzuführen, nach dem dritten gescheiterten Versuch wird der Container neu gestartet.</p>
-</div>
-<div class="videoblock">
-<div class="content">
-<iframe src="https://www.youtube.com/embed/H9OEvQULVnI?rel=0" frameborder="0" allowfullscreen></iframe>
-</div>
-</div>
-<div class="paragraph">
-<p>Zusätzlich werden nur Container geroutet, die Healthy sind. Sobald ein Container <em>unhealthy</em> ist und der Manager dies erkennt wird er nicht mehr angesprochen.</p>
-</div>
-<hr>
 <div class="sect3">
 <h4 id="fazit">Fazit</h4>
 <div class="paragraph">
-<p>Speziell im Swarm machen die Container Health Checks Sinn, da Swarm Container nicht routet, die <em>unhealthy</em> sind.
-Die Verwendung ist <em>wie immer</em> denkbar einfach und funktioniert erstaunlich stabil und gut.</p>
+<p>Es lohnt sich, sich ein wenig mit <strong>Go-Templates</strong> zu beschäftigen. Es ist noch viel mehr möglich, aber alleine mit den paar einfachen Templates hier lassen sich schon die meisten Informationen schnell ermitteln, die man so tagtäglich braucht.</p>
 </div>
 <hr>
 </div>
 <div class="sect3">
 <h4 id="links">Links</h4>
-<div class="paragraph">
-<p><a href="https://github.com/effective-docker/docker-healthcheck.git">Sourcen</a></p>
-</div>
-<div class="paragraph">
-<p><a href="https://docs.docker.com/engine/swarm/">swarm mode</a></p>
-</div>
 <hr>
 </div>
 <div class="sect3">
@@ -458,7 +404,7 @@ Ich biete <a href="http://www.effectivetrainings.de/html/workshops/effective_doc
         /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
         var disqus_shortname = 'perfectlyrandom'; // required: replace example with your forum shortname
         // var disqus_developer = 1; // Comment out when the site is live
-        var disqus_identifier = "/docker-swarm-health-checks/";
+        var disqus_identifier = "/docker-inspect/";
 
         /* * * DON'T EDIT BELOW THIS LINE * * */
         (function() {
