@@ -11,7 +11,7 @@ example-caption: Beispiel
 caution-caption: Achtung
 root: ../../
 ---
-== Docker Health Checks
+== Daily Docker Inspect
 :tip-caption: Tipp
 :caution-caption: Achtung
 :question-caption: Frage
@@ -82,7 +82,7 @@ Go Templates erlauben das dynamische Formatieren der Ausgabe anhand von einem Te
 Wollen Sie tiefer in das Thema Templates einsteigen emfehle ich folgende Artikel:
 
 
-https://docs.docker.com/engine/reference/commandline/inspect/ [Docker Inspect Dokumentation]
+https://docs.docker.com/engine/reference/commandline/inspect/[Docker Inspect Dokumentation]
 
 http://container-solutions.com/docker-inspect-template-magic/[Template Magic / ContainerSolutions]
 
