@@ -23,7 +23,7 @@ root: ../../
 Spätestens im Cluster mit mehreren Knoten wird es schwierig, den Überblick über die Logs aller Container auf allen Hosts zu behalten.
 Es ist einfach nicht mehr praktikabel und zeitgemäß, sich auf einem Knoten einzuloggen, um dort die Logfiles in _/var/log/_ manuell mit _less_ und _tail_  zu durchforsten.
 
-Besser ist der Einsatz eines zentralel Logging-Servers. Hierfür gibt es viele Beispiele und wir werden uns noch einige genauer betrachten. Für den Anfang nehmen wir den kampferprobten *ELK-Stack*. Elk kennt mittlerweile wahrscheinlich beinahe jeder, und steht für *E* - ElasticSearch, *L* - Logback, *K* - Kibana.
+Besser ist der Einsatz eines zentralel Logging-Servers. Hierfür gibt es viele Beispiele und wir werden uns noch einige genauer betrachten. Für den Anfang nehmen wir den kampferprobten *ELK-Stack*. Elk kennt mittlerweile wahrscheinlich beinahe jeder, und steht für *E* - ElasticSearch, *L* - Logstash, *K* - Kibana.
 
 TIP: Unten finden Sie die Kommandos die sie direkt in einem Swarm Cluster ausführen können für ein 1 Copy / Paste Setup des Elk-Stacks inkl. Logspout.
 
@@ -108,8 +108,8 @@ eval $(docker-machine env node-1)
 docker service create --network elk --mode global --name logspout -p 8000:80 --mount type=bind,source=/var/run/docker.sock,target=/var/run/docker.sock gliderlabs/logspout
 ----
 
-Das Logsput Image ist sehr klein, es sollte also sehr schnell starten.
-Anschließend prüfen wir, ob Logsput die Logs sammelt.
+Das Logspout Image ist sehr klein, es sollte also sehr schnell starten.
+Anschließend prüfen wir, ob Logspout die Logs sammelt.
 
 [source, bash]
 ----
@@ -120,11 +120,11 @@ logs.nzyouohjyk1g489j24odb9nl2.c3rk2o1vpmx21sergrguc4kkd|2017-01-16 20:27:05.194
 logs.nzyouohjyk1g489j24odb9nl2.c3rk2o1vpmx21sergrguc4kkd|2017-01-16 20:27:06.194 ERROR 1 --- [pool-1-thread-1] de.effectivetrainings.LogsApplication    : This is an error
 ----
 
-Wir werden später dafür sorgen, dass Logsput die Logs an Logback überträgt.
+Wir werden später dafür sorgen, dass Logspout die Logs an Logstash überträgt.
 
 ==== Elk
 
-Jetzt setzen wir den Elk-Stack auf - versproche, das geht ganz schnell.
+Jetzt setzen wir den Elk-Stack auf - versprochen, das geht ganz schnell.
 
 Zunächst kümmern wir uns um das *E* und starten ElasticSearch.
 
@@ -134,7 +134,7 @@ docker service create --name elasticsearch --reserve-memory 500m --network elk -
 ----
 
 
-Anschließend benötigen wir Logback um die Logs von LogSpout entgegenzunehmen und in ElasticSearch zu schreiben.
+Anschließend benötigen wir Logstash um die Logs von LogSpout entgegenzunehmen und in ElasticSearch zu schreiben.
 
 Die Konfiguration für Logstash ist ganz einfach und sieht eigentlich in diesem Setup fast immer gleich aus.
 
@@ -153,7 +153,7 @@ output {
 }
 ----
 
-Wir starten logstash und geben die Konfiguration direkt auf der Command-Line mit.
+Wir starten Logstash und geben die Konfiguration direkt auf der Command-Line mit.
 
 [source, bash]
 ----
@@ -162,7 +162,7 @@ docker service create --name logstash --network elk -e LOGSPOUT=ignore logstash 
 
 Damit sollte hoffentlich Logstash mit ElasticSearch sprechen. Werden wir gleich prüfen.
 
-Jetzt kümmern wir uns nochmal um *Logspout*, denn wir müssen sicherstellen, dass die Logs von Logsput nach Logstash geschickt werden. Hierfür verwenden wir das Syslog-Format und zwar im https://www.elastic.co/guide/en/logstash/current/plugins-inputs-syslog.html[*RFC3164*].
+Jetzt kümmern wir uns nochmal um *Logspout*, denn wir müssen sicherstellen, dass die Logs von Logspout nach Logstash geschickt werden. Hierfür verwenden wir das Syslog-Format und zwar im https://www.elastic.co/guide/en/logstash/current/plugins-inputs-syslog.html[*RFC3164*].
 
 Entfernen wir den Logspout-Service und starten ihn erneut mit der kompletten Konfiguration.
 
@@ -242,7 +242,7 @@ docker service create --name kibana -p 5601:5601 --network elk -e ELASTICSEARCH_
 docker service create --name logs --mode global effectivetrainings/logs
 ----
 
-image::/assets/images/logging/kibana.png[Kibana]
+image::/assets/images/logging/kibana.png[Kibana, 800]
 
 '''
 
