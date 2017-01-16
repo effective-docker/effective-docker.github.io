@@ -158,6 +158,37 @@
             <ul>
             
                 <li class="excerpt">
+                    <span class="post-date"> 16.01.2017</span> <a href="/docker-logging/">Docker Logging</a>
+                    <div class="sect1">
+<h2 id="docker-logging-mit-elk">Docker Logging mit ELK</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="tldr">TLDR;</h3>
+<div class="paragraph">
+Spätestens im Cluster mit mehreren Knoten wird es schwierig, den Überblick über die Logs aller Container auf allen Hosts zu behalten.
+Es ist einfach nicht mehr praktikabel und zeitgemäß, sich auf einem Knoten einzuloggen, um dort die Logfiles in <em>/var/log/</em> manuell mit <em>less</em> und <em>tail</em>  zu durchforsten.
+</div>
+<div class="paragraph">
+Besser ist der Einsatz eines zentralel Logging-Servers. Hierfür gibt es viele Beispiele und wir werden uns noch einige genauer betrachten. Für den Anfang nehmen wir den kampferprobten <strong>ELK-Stack</strong>. Elk kennt mittlerweile wahrscheinlich beinahe jeder, und steht für <strong>E</strong> - ElasticSearch, <strong>L</strong> - Logback, <strong>K</strong> - Kibana.
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Achtung</div>
+</td>
+<td class="content">
+Mit Boot2Docker auf MacOS werden Sie typischerweise das hier sehen: # Native memory allocation (mmap) failed to map 2060255232 bytes for committing reserved memory. ElasticSearch braucht mindestens 2GB daher empfiehlt es sich für dieses Experiment den Memory zu erhöhen (es reicht beispielsweise über die VirtualBox UI)
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+</div>
+                </li>
+              
+                <li class="excerpt">
                     <span class="post-date"> 15.01.2017</span> <a href="/docker-inspect/">Daily Docker inspect</a>
                     <div class="sect1">
 <h2 id="daily-docker-inspect">Daily Docker Inspect</h2>
@@ -338,6 +369,8 @@ Anwendungen zu deployen ist <em>einfach</em>, und Docker Container zu starten is
             <h5>Posts</h5>
 
             <ul id="all-posts" class="posts nav">
+                
+                <li><a href="/docker-logging/"><span class="post-date"> 16.01.2017</span> Docker Logging mit ELK</a></li>
                 
                 <li><a href="/docker-inspect/"><span class="post-date"> 15.01.2017</span> Docker inspect für jeden Tag</a></li>
                 
