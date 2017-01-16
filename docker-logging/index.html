@@ -155,7 +155,7 @@
         <!-- Main Blog Content -->
         <div class="col-sm-8 blog-main" role="content">
             <div class="sect1">
-<h2 id="docker-logging-mit-elk">Docker Logging mit ELK</h2>
+<h2 id="docker-logging-mit-elk-in-5-minutes">Docker Logging mit ELK in 5 Minutes</h2>
 <div class="sectionbody">
 <div class="sect2">
 <h3 id="tldr">TLDR;</h3>
@@ -165,6 +165,18 @@ Es ist einfach nicht mehr praktikabel und zeitgemäß, sich auf einem Knoten ein
 </div>
 <div class="paragraph">
 <p>Besser ist der Einsatz eines zentralel Logging-Servers. Hierfür gibt es viele Beispiele und wir werden uns noch einige genauer betrachten. Für den Anfang nehmen wir den kampferprobten <strong>ELK-Stack</strong>. Elk kennt mittlerweile wahrscheinlich beinahe jeder, und steht für <strong>E</strong> - ElasticSearch, <strong>L</strong> - Logback, <strong>K</strong> - Kibana.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Tipp</div>
+</td>
+<td class="content">
+Unten finden Sie die Kommandos die sie direkt in einem Swarm Cluster ausführen können für ein 1 Copy / Paste Setup des Elk-Stacks inkl. Logspout.
+</td>
+</tr>
+</table>
 </div>
 <div class="admonitionblock caution">
 <table>
