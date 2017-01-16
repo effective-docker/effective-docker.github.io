@@ -164,7 +164,7 @@
 Es ist einfach nicht mehr praktikabel und zeitgemäß, sich auf einem Knoten einzuloggen, um dort die Logfiles in <em>/var/log/</em> manuell mit <em>less</em> und <em>tail</em>  zu durchforsten.</p>
 </div>
 <div class="paragraph">
-<p>Besser ist der Einsatz eines zentralel Logging-Servers. Hierfür gibt es viele Beispiele und wir werden uns noch einige genauer betrachten. Für den Anfang nehmen wir den kampferprobten <strong>ELK-Stack</strong>. Elk kennt mittlerweile wahrscheinlich beinahe jeder, und steht für <strong>E</strong> - ElasticSearch, <strong>L</strong> - Logback, <strong>K</strong> - Kibana.</p>
+<p>Besser ist der Einsatz eines zentralel Logging-Servers. Hierfür gibt es viele Beispiele und wir werden uns noch einige genauer betrachten. Für den Anfang nehmen wir den kampferprobten <strong>ELK-Stack</strong>. Elk kennt mittlerweile wahrscheinlich beinahe jeder, und steht für <strong>E</strong> - ElasticSearch, <strong>L</strong> - Logstash, <strong>K</strong> - Kibana.</p>
 </div>
 <div class="admonitionblock tip">
 <table>
@@ -286,8 +286,8 @@ docker service create --network elk --mode global --name logspout -p 8000:80 --m
 </div>
 </div>
 <div class="paragraph">
-<p>Das Logsput Image ist sehr klein, es sollte also sehr schnell starten.
-Anschließend prüfen wir, ob Logsput die Logs sammelt.</p>
+<p>Das Logspout Image ist sehr klein, es sollte also sehr schnell starten.
+Anschließend prüfen wir, ob Logspout die Logs sammelt.</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -299,13 +299,13 @@ logs.nzyouohjyk1g489j24odb9nl2.c3rk2o1vpmx21sergrguc4kkd|2017-01-16 20:27:06.194
 </div>
 </div>
 <div class="paragraph">
-<p>Wir werden später dafür sorgen, dass Logsput die Logs an Logback überträgt.</p>
+<p>Wir werden später dafür sorgen, dass Logspout die Logs an Logstash überträgt.</p>
 </div>
 </div>
 <div class="sect3">
 <h4 id="elk">Elk</h4>
 <div class="paragraph">
-<p>Jetzt setzen wir den Elk-Stack auf - versproche, das geht ganz schnell.</p>
+<p>Jetzt setzen wir den Elk-Stack auf - versprochen, das geht ganz schnell.</p>
 </div>
 <div class="paragraph">
 <p>Zunächst kümmern wir uns um das <strong>E</strong> und starten ElasticSearch.</p>
@@ -316,7 +316,7 @@ logs.nzyouohjyk1g489j24odb9nl2.c3rk2o1vpmx21sergrguc4kkd|2017-01-16 20:27:06.194
 </div>
 </div>
 <div class="paragraph">
-<p>Anschließend benötigen wir Logback um die Logs von LogSpout entgegenzunehmen und in ElasticSearch zu schreiben.</p>
+<p>Anschließend benötigen wir Logstash um die Logs von LogSpout entgegenzunehmen und in ElasticSearch zu schreiben.</p>
 </div>
 <div class="paragraph">
 <p>Die Konfiguration für Logstash ist ganz einfach und sieht eigentlich in diesem Setup fast immer gleich aus.</p>
@@ -337,7 +337,7 @@ output {
 </div>
 </div>
 <div class="paragraph">
-<p>Wir starten logstash und geben die Konfiguration direkt auf der Command-Line mit.</p>
+<p>Wir starten Logstash und geben die Konfiguration direkt auf der Command-Line mit.</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -348,7 +348,7 @@ output {
 <p>Damit sollte hoffentlich Logstash mit ElasticSearch sprechen. Werden wir gleich prüfen.</p>
 </div>
 <div class="paragraph">
-<p>Jetzt kümmern wir uns nochmal um <strong>Logspout</strong>, denn wir müssen sicherstellen, dass die Logs von Logsput nach Logstash geschickt werden. Hierfür verwenden wir das Syslog-Format und zwar im <a href="https://www.elastic.co/guide/en/logstash/current/plugins-inputs-syslog.html"><strong>RFC3164</strong></a>.</p>
+<p>Jetzt kümmern wir uns nochmal um <strong>Logspout</strong>, denn wir müssen sicherstellen, dass die Logs von Logspout nach Logstash geschickt werden. Hierfür verwenden wir das Syslog-Format und zwar im <a href="https://www.elastic.co/guide/en/logstash/current/plugins-inputs-syslog.html"><strong>RFC3164</strong></a>.</p>
 </div>
 <div class="paragraph">
 <p>Entfernen wir den Logspout-Service und starten ihn erneut mit der kompletten Konfiguration.</p>
@@ -435,7 +435,7 @@ docker service create --name logs --mode global effectivetrainings/logs</code></
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="/assets/images/logging/kibana.png" alt="Kibana">
+<img src="/assets/images/logging/kibana.png" alt="Kibana" width="800">
 </div>
 </div>
 <hr>
