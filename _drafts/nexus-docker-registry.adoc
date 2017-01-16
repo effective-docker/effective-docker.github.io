@@ -1,0 +1,89 @@
+---
+layout: post
+title: <Title>
+shortTitle: <Subtitle>
+documentationExpanded: false
+comments: true
+postsExpanded: true
+categories: <categories>
+excerpt_separator: // excerpt
+example-caption: Beispiel
+caution-caption: Achtung
+root: ../../
+---
+== Headline
+:tip-caption: Tipp
+:caution-caption: Achtung
+:question-caption: Frage
+:warning-caption: Warnung
+:important-caption: Wichtig
+
+=== TLDR;
+
+Docker Registries erlauben uns, _Docker Images_ zu (ver)teilen und Code zu sharen. Das Docker-Credo *Build Once, run anywhere* bekommt hierdurch eine ganz neue Bedeutung, denn sobald ein Image tatsächlich gepusht ist kann es von jedem der Zugriff auf die Registry hat betrieben werden.
+
+Es gibt jetzt eine ganze Menge an Registry-Implementierungen. Das reicht von der Docker-eigenen Registry V2 (registry:2) hin zu kommerziellen Produkten (Artifactory oder Sonatype Nexus).
+
+Die offizielle Registry von Docker kommt ohne UI daher, ist also für den kommerziellen Gebrauch kaum nutzbar. Die Open-Source UIs die für Registries erhältlich sind sind meiner Ansicht nach nur schwer zu konfigurieren ein teilweise sehr fehlerhaft.
+
+*Nexus* von Sonatype bietet eine integrierte Docker Registry die wir uns in diese Artikel einmal betrachten möchten.
+
+// excerpt
+
+'''
+=== Nexus starten / konfigurieren
+
+Nexus kann direkt in https://hub.docker.com/r/sonatype/nexus3/[Docker] betrieben werden mit den Standard-Credentials admin / admin123.
+
+[source, bash]
+----
+docker run -d -p 8020:8081 -p 8021:8021 -p 8022:8022 --name nexus sonatype/nexus3
+----
+
+CAUTION: Der Port 8020 dient zum direkten Zugriff, 8081 und 8022 sind für den Zugriff auf die integrierte Docker-Registry.
+
+Nach dem Start und einer kurzen Wartezeit können wir über http://localhost:8020/nexus auf Nexus zugreifen.
+
+CAUTION: Achtung es ist wichtig, Nexus 3 zu verwenden, da erst ab der Version 3 offizieller Support für Docker integriert ist.
+
+Zunächst muss ein neues _Hosted_-Repository eingerichtet werden. _Hosted_ in diesem Fall steht dafür, dass die Daten direkt von Nexus verwaltet werden.
+
+TODO: Video Repository einrichten
+'''
+
+==== Push
+docker tag effectivetrainings/clock localhost:8021/effective-docker/clock
+root@scw-e348b1:~# docker push localhost:8021/effective-docker/clock
+
+docker login localhost:8021
+Username: admin
+Password:
+Login Succeeded
+root@scw-e348b1:~# docker push localhost:8021/effective-docker/clock
+The push refers to a repository [localhost:8021/effective-docker/clock]
+60ab55d3379d: Pushed
+latest: digest: sha256:cd80d3180ca2b52de05c99504e53fe97e40737e4001efaa1a51c436f61e3491c size: 528
+root@scw-e348b1:~#
+
+==== Insecure Registry
+
+https://support.sonatype.com/hc/en-us/articles/217542177
+
+/etc/docker/daemon.json
+https://docs.docker.com/engine/reference/commandline/dockerd/#/daemon-configuration-file
+
+==== secure registry
+
+==== Fazit
+
+'''
+
+==== Links
+
+'''
+
+==== Docker Training
+
+*Wollen Sie mehr erfahren?*
+Ich biete http://www.effectivetrainings.de/html/workshops/effective_docker_workshop.php[Consulting / Training] für Docker. Schauen Sie doch mal vorbei!
+

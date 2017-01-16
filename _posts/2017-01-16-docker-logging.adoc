@@ -1,0 +1,272 @@
+---
+layout: post
+title: Docker Logging
+shortTitle: Docker Logging mit ELK
+documentationExpanded: false
+comments: true
+postsExpanded: true
+categories: <categories>
+excerpt_separator: // excerpt
+example-caption: Beispiel
+caution-caption: Achtung
+root: ../../
+---
+== Docker Logging mit ELK in 5 Minutes
+:tip-caption: Tipp
+:caution-caption: Achtung
+:question-caption: Frage
+:warning-caption: Warnung
+:important-caption: Wichtig
+
+=== TLDR;
+
+Spätestens im Cluster mit mehreren Knoten wird es schwierig, den Überblick über die Logs aller Container auf allen Hosts zu behalten.
+Es ist einfach nicht mehr praktikabel und zeitgemäß, sich auf einem Knoten einzuloggen, um dort die Logfiles in _/var/log/_ manuell mit _less_ und _tail_  zu durchforsten.
+
+Besser ist der Einsatz eines zentralel Logging-Servers. Hierfür gibt es viele Beispiele und wir werden uns noch einige genauer betrachten. Für den Anfang nehmen wir den kampferprobten *ELK-Stack*. Elk kennt mittlerweile wahrscheinlich beinahe jeder, und steht für *E* - ElasticSearch, *L* - Logback, *K* - Kibana.
+
+TIP: Unten finden Sie die Kommandos die sie direkt in einem Swarm Cluster ausführen können für ein 1 Copy / Paste Setup des Elk-Stacks inkl. Logspout.
+
+CAUTION: Mit Boot2Docker auf MacOS werden Sie typischerweise das hier sehen: # Native memory allocation (mmap) failed to map 2060255232 bytes for committing reserved memory. ElasticSearch braucht mindestens 2GB daher empfiehlt es sich für dieses Experiment den Memory zu erhöhen (es reicht beispielsweise über die VirtualBox UI)
+
+// excerpt
+
+'''
+=== Swarm und Logs
+
+Zunächst erzeugen wir uns wieder einen Swarm-Cluster mit drei Knoten in einer VirtualBox.
+
+[source, bash]
+----
+for i in {1..3}; do
+    docker-machine create -d virtualbox node-$i
+done
+----
+
+Anschließend initialisieren wir den Cluster.
+
+[source, bash]
+----
+eval $(docker-machine env node-1)
+docker swarm init --advertise-addr $(docker-machine ip node-1)
+
+for i in {2..3}; do
+    eval $(docker-machine env node-$i)
+    docker swarm join --token <token> 192.168.99.103:2377
+done
+
+eval $(docker-machine env node-1)
+docker node ls
+ID                           HOSTNAME  STATUS  AVAILABILITY  MANAGER STATUS
+i27ghscfaytzk4s5twc13g72v *  node-1    Ready   Active        Leader
+nzyouohjyk1g489j24odb9nl2    node-3    Ready   Active
+un281pyh5vvihq2rcjoj8zeif    node-2    Ready   Active
+----
+
+Die Lösung soll funktionieren, egal wieviele Container wir im Cluster starten und ohne Konfigurationsoverhead.
+Eine schöne Lösung hierfür ist *Logspout*. Logspout wird auf einem Node gestartet und mit einem Bind mit Zugriff auf den _Docker-Socket_ ausgestattet. Anschließend sammelt _Logspout_ alle Logs aller Container und leitet sie an einen konfigurierbaren Endpunkt weiter.
+
+Wir starten hierfür eine einfache Anwendung auf jedem Knoten als Service, die nichts weiter tut als periodisch zu loggen.
+
+[source, bash]
+----
+docker service create --name logs --mode global effectivetrainings/logs
+----
+
+CAUTION: Warten Sie, bis _docker service ls_ Ihnen sagt, dass alle Tasks gestartet sind (Replicas 3/3)
+
+Anschließend prüfen wir für einen beliebigen Container, ob geloggt wird, beispielsweise auf _Node-2_.
+
+[source, bash]
+----
+eval $(docker-machine env node-2)
+docker ps -q --filter "name=logs" | xargs docker logs -f
+
+2017-01-16 20:18:47.985  INFO 1 --- [pool-1-thread-1] de.effectivetrainings.LogsApplication    : Simple Info Message
+2017-01-16 20:18:48.985 ERROR 1 --- [pool-1-thread-1] de.effectivetrainings.LogsApplication    : This is an error
+
+----
+
+Das Logging funktioniert. Es ist aber wirklich anstrengend, will man allen Containern folgen.
+
+==== ELK Stack & LogSpout
+
+Zunächst erstellen wir uns ein eigenes Overlay-Netzwerk für Elk-Stack.
+
+[source, bash]
+----
+docker network create -d overlay elk
+----
+
+Starten wir jetzt *LogSpout*, ebenfalls als globalen Service.
+Wir exposen den Port 80 auf 8000 um die Logs via cURL prüfen zu können. Weiterhin binden wir uns an den Docker-Socket.
+
+[source, bash]
+----
+eval $(docker-machine env node-1)
+
+docker service create --network elk --mode global --name logspout -p 8000:80 --mount type=bind,source=/var/run/docker.sock,target=/var/run/docker.sock gliderlabs/logspout
+----
+
+Das Logsput Image ist sehr klein, es sollte also sehr schnell starten.
+Anschließend prüfen wir, ob Logsput die Logs sammelt.
+
+[source, bash]
+----
+curl $(docker-machine ip node-1):8000/logs
+
+logs.nzyouohjyk1g489j24odb9nl2.c3rk2o1vpmx21sergrguc4kkd|2017-01-16 20:27:04.193 ERROR 1 --- [pool-1-thread-1] de.effectivetrainings.LogsApplication    : This is an error
+logs.nzyouohjyk1g489j24odb9nl2.c3rk2o1vpmx21sergrguc4kkd|2017-01-16 20:27:05.194  INFO 1 --- [pool-1-thread-1] de.effectivetrainings.LogsApplication    : Simple Info Message
+logs.nzyouohjyk1g489j24odb9nl2.c3rk2o1vpmx21sergrguc4kkd|2017-01-16 20:27:06.194 ERROR 1 --- [pool-1-thread-1] de.effectivetrainings.LogsApplication    : This is an error
+----
+
+Wir werden später dafür sorgen, dass Logsput die Logs an Logback überträgt.
+
+==== Elk
+
+Jetzt setzen wir den Elk-Stack auf - versproche, das geht ganz schnell.
+
+Zunächst kümmern wir uns um das *E* und starten ElasticSearch.
+
+[source, bash]
+----
+docker service create --name elasticsearch --reserve-memory 500m --network elk -p 9200:9200 elasticsearch
+----
+
+
+Anschließend benötigen wir Logback um die Logs von LogSpout entgegenzunehmen und in ElasticSearch zu schreiben.
+
+Die Konfiguration für Logstash ist ganz einfach und sieht eigentlich in diesem Setup fast immer gleich aus.
+
+[source, bash]
+----
+input {
+     syslog { port => 51415 }
+}
+output {
+     elasticsearch {
+        hosts => ["elasticsearch:9200"]
+     }
+     stdout {
+        codec => rubydebug
+     }
+}
+----
+
+Wir starten logstash und geben die Konfiguration direkt auf der Command-Line mit.
+
+[source, bash]
+----
+docker service create --name logstash --network elk -e LOGSPOUT=ignore logstash -e "input { syslog { port => 51111 } } output { elasticsearch { hosts => ['elasticsearch:9200']  } }"
+----
+
+Damit sollte hoffentlich Logstash mit ElasticSearch sprechen. Werden wir gleich prüfen.
+
+Jetzt kümmern wir uns nochmal um *Logspout*, denn wir müssen sicherstellen, dass die Logs von Logsput nach Logstash geschickt werden. Hierfür verwenden wir das Syslog-Format und zwar im https://www.elastic.co/guide/en/logstash/current/plugins-inputs-syslog.html[*RFC3164*].
+
+Entfernen wir den Logspout-Service und starten ihn erneut mit der kompletten Konfiguration.
+
+[source, bash]
+----
+eval $(docker-machine env node-1)
+docker service rm logspout
+
+docker service create --network elk --mode global -e SYSLOG_FORMAT=rfc3164 --name logspout -p 8000:80 --mount type=bind,source=/var/run/docker.sock,target=/var/run/docker.sock gliderlabs/logspout syslog://logstash:51111
+----
+
+Wir können anschließend direkt prüfen, ob die Daten in Elasticsearch landen.
+
+[source, bash]
+----
+docker service ps elasticsearch
+nm9tjy7dchov  elasticsearch.1      elasticsearch:latest  node-1  Running        Running 3 minutes ago
+
+#ES läuft auf node-1
+curl $(docker-machine ip node-1):9200/_cat/indices
+yellow open logstash-2017.01.16 7zNhtJ2nR_KQvEuPC6fMcA 5 1 1706 0 717kb 717kb
+
+#wir sehen einen logstash index
+curl "$(docker-machine ip node-1):9200/logstash-2017.01.16/_search?q=*:*"
+
+{
+        "_index": "logstash-2017.01.16",
+        "_type": "logs",
+        "_id": "AVmpLVU7HXaNkXKac6BP",
+        "_score": 1,
+        "_source": {
+          "severity": 6,
+          "timestamp8601": "2017-01-16T21:27:17Z",
+          "pid": "1848",
+          "program": "logs.un281pyh5vvihq2rcjoj8zeif.87wj1zk1pzw98k1ftulsb7f0i",
+          "message": "2017-01-16 21:27:17.552 ERROR 1 --- [pool-1-thread-1] de.effectivetrainings.LogsApplication    : This is an error\n",
+          "priority": 14,
+          "logsource": "b9801c4e782c",
+          "@timestamp": "2017-01-16T21:27:17.000Z",
+          "@version": "1",
+          "host": "10.0.0.6",
+          "facility": 1,
+          "severity_label": "Informational",
+          "timestamp": "2017-01-16T21:27:17Z",
+          "facility_label": "user-level"
+        }
+      }
+}
+...
+----
+
+Tatsächlich landen die Logs aller Container über Logspout in Logstash und von dort in Elasticsearch.
+Zu guter letzt visualisieren wir alles in Kibana.
+
+[source, bash]
+----
+docker service create --name kibana -p 5601:5601 --network elk -e ELASTICSEARCH_URL=http://elasticsearch:9200 kibana
+----
+
+==== Fazit
+
+Es ist sehr einfach den Stack in der Grundkonfiguration für erste Experimente aufzusetzen. Hiernochmal alle Befehle die so direkt ausgeführt werden können.
+Vorausgesetzt der Swarm ist bereits aufgesetzt und wir sind mit dem *master* verbunden.
+
+[source, bash]
+----
+docker network create -d overlay elk
+#elasticsearch
+docker service create --name elasticsearch --reserve-memory 500m --network elk -p 9200:9200 elasticsearch
+#logstash
+docker service create --name logstash --network elk -e LOGSPOUT=ignore logstash -e "input { syslog { port => 51111 } } output { elasticsearch { hosts => ['elasticsearch:9200']  } }"
+#logspout
+docker service create --network elk --mode global -e SYSLOG_FORMAT=rfc3164 --name logspout -p 8000:80 --mount type=bind,source=/var/run/docker.sock,target=/var/run/docker.sock gliderlabs/logspout syslog://logstash:51111
+#kibana
+docker service create --name kibana -p 5601:5601 --network elk -e ELASTICSEARCH_URL=http://elasticsearch:9200 kibana
+#logging app
+docker service create --name logs --mode global effectivetrainings/logs
+----
+
+image::/assets/images/logging/kibana.png[Kibana]
+
+'''
+
+==== Cleanup
+
+[source, bash]
+----
+docker service rm logstash elasticsearch logspout kibana logs
+docker network rm elk
+for i in {1..3}; do
+  docker-machine rm node-$i
+done;
+----
+
+==== Links
+
+https://github.com/gliderlabs/logspout[Logspout]
+https://www.elastic.co/de/products/kibana[Kibana]
+https://www.elastic.co/de/products/logstash[Logstash]
+
+'''
+
+==== Docker Training
+
+*Wollen Sie mehr erfahren?*
+Ich biete http://www.effectivetrainings.de/html/workshops/effective_docker_workshop.php[Consulting / Training] für Docker. Schauen Sie doch mal vorbei!
+

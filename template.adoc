@@ -11,7 +11,7 @@ example-caption: Beispiel
 caution-caption: Achtung
 root: ../../
 ---
-== Docker Health Checks
+== Headline
 :tip-caption: Tipp
 :caution-caption: Achtung
 :question-caption: Frage
@@ -22,18 +22,9 @@ root: ../../
 
 '''
 
-=== Docker Container Health Checks
+=== H1
 
 // excerpt
-
-'''
-
-=== Beispielanwendung
-
-
-'''
-
-=== Docker Health Check
 
 '''
 
