@@ -5,7 +5,7 @@
 <head>
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Effective Docker Cheatsheet</title>
+    <title>Inter-Container Dependencies</title>
 
 
     <meta name="description"
@@ -155,20 +155,259 @@
         <!-- Main Blog Content -->
         <div class="col-sm-8 blog-main" role="content">
             <div class="sect1">
-<h2 id="docker-cheat-sheet">Docker Cheat Sheet</h2>
+<h2 id="container-unter-kontrolle">Container unter Kontrolle</h2>
 <div class="sectionbody">
+<div class="sect2">
+<h3 id="tldr">TLDR;</h3>
 <div class="paragraph">
-<p>Ich habe das <a href="http://www.effectivetrainings.de/training/docker/effective-trainings-docker-cheatsheet.pdf">Docker Handout</a> erstellt. Eigentlich sollte hier alles drauf sein, was man braucht um effektiv mit <strong>Docker</strong> arbeiten zu können.</p>
+<p><strong>docker-compose</strong> <strong>health-checks</strong> <strong>container-dependencies</strong></p>
 </div>
 <div class="paragraph">
-<p>Solltet ihr ein gedrucktes Exemplar wollen kann ich das <a href="http://www.effectivetrainings.de/html/workshops/effective_docker_workshop.php">Docker Training</a> empfehlen.</p>
+<p>Gerade beim Deployment von ganzen Stacks mit Docker-Compose kommt es vor, dass Container untereinander Abhängigkeiten haben. Simples Beispiel - ein einfacher Service mit einer Abhängigkeit auf eine Datenbank order einen KV-Store. Werden beide Container gleichzeitig gestartet könnte der Service Probleme bekommen, wenn die Datenbank beim Startup noch nicht da ist.
+Man kann das über einen halbwegs stabilen Retry lösen, indem man versucht, sich immer wieder gegen die Datenbank zu verbinden bis es klappt.
+Zusätzlich macht es aber Sinn, eines der neuen Features in Docker zu verwenden - <strong>depends on</strong> mit <strong>healthchecks</strong>.</p>
 </div>
 <hr>
+</div>
+<div class="sect2">
+<h3 id="depends-on">Depends on</h3>
+<div class="paragraph">
+<p>Nehmen wir uns einen einfachen Service, der nichts weiter tut als einen Counter über einen Rest-Endpoint abzufragen - nennen wir die Anwendung <strong>Counter</strong>. Es gibt den Counter-Client und den Counter-Server.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Tipp</div>
+</td>
+<td class="content">
+Faktisch ist beides die gleiche Anwendung, sie kann über einen Flag in den Server- oder Client-Mode versetzt werden.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Die Verbindung zwischen den Services wird einfach über zwei Umgebungsvariablen definiert.</p>
+</div>
+<div class="paragraph">
+<p>Damit wir nicht anfangen, die Services einzeln zu starten verpacken wir das Ganze noch in ein einfaches <strong>docker-compose</strong>-File.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Tipp</div>
+</td>
+<td class="content">
+Beide Container laufen im selben Netzwerk, daher können Sie problemlos kommunizieren.
+</td>
+</tr>
+</table>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-bash" data-lang="bash">version: '2.1'
+services:
+  client:
+    image: effectivetrainings/counter-app
+    environment:
+    - server_url=http://server:8080/client <b class="conum">(1)</b>
+    - application_server=false <b class="conum">(2)</b>
+    networks:
+    - effectivedocker
+    ports:
+    - 8080:8080
+  server:
+    image: effectivetrainings/counter-app
+    networks:
+    - effectivedocker
+    environment:
+    - application_server=true <b class="conum">(3)</b>
+networks:
+   effectivedocker:
+    driver: bridge</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<ol>
+<li>
+<p>Server URL zum Abfragen des Counters</p>
+</li>
+<li>
+<p>Server / Client Mode</p>
+</li>
+<li>
+<p>Server Mode</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>Wir starten zwei Instanzen, eine läuft als Client (<strong>application_server=false</strong>), eine als Server (<strong>application_server=true</strong>).
+Der Server (da Server ja immer groß und mächtig sind) braucht etwas länger und hat im Start einen Sleep von 60 Sekunden eingebaut.
+Solange der Server also nicht da ist ist der Client nicht verwendbar.</p>
+</div>
+<hr>
+<div class="sect3">
+<h4 id="health-checks">Health Checks</h4>
+<div class="paragraph">
+<p>Die Anwendung ist eine einfache Spring-Boot Anwendung mit <a href="http://docs.spring.io/spring-boot/docs/current/reference/html/production-ready-endpoints.html">Actuator</a>. Dadurch bekommen wir automatisch bereits Health-Checks für die Anwendung, die wir über den Endpunkt Health abrufen können.</p>
+</div>
+<div class="paragraph">
+<p>Ein einfacher Health-Check über <em>cURL</em> bekommen wir über den <em>health</em>-Endpoint.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-bash" data-lang="bash">curl http://localhost:8080/health</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Die Docker-Engine weiß allerdings nichts von dem Health-Status der Applikation. Docker bietet seit 1.12 standardmäßig Support für <em><a href="https://effective-docker.github.io/docker-swarm-health-checks/">Health-Checks</a></em>.</p>
+</div>
+<div class="paragraph">
+<p>Zunächst sollten wir die Abhängigkeit zwischen den Services definieren. Der Client ist <strong>abhängig</strong> vom Server. In <em>docker-compose</em> deklarieren wir derartige Dependencies mit <em>depends_on</em>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-bash" data-lang="bash">  client:
+    image: effectivetrainings/counter-app
+    environment:
+    - server_url=http://server:8080/counter
+    - application_server=false
+    networks:
+    - effectivedocker
+    ports:
+    - 8080:8080
+    depends_on: <b class="conum">(1)</b>
+    - "server"</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<ol>
+<li>
+<p>Abhängigkeit zu Server</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>Zusätzlich definieren wir die Health-Checks für die beiden Services.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-bash" data-lang="bash">client:
+    image: effectivetrainings/counter-app
+    environment:
+    - server_url=http://server:8080/counter
+    - application_server=false
+    networks:
+    - effectivedocker
+    ports:
+    - 8080:8080
+    depends_on:
+    - "server"
+    healthcheck:
+       test: "curl -f localhost:8080/health || exit 1"
+server:
+    image: effectivetrainings/counter-app
+    networks:
+    - effectivedocker
+    environment:
+    - application_server=true
+    healthcheck:
+        test: "curl -f localhost:8080/health || exit 1"</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Ein <em>docker ps</em> gibt uns jetzt bereits den Health-Status mit aus.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-bash" data-lang="bash">CONTAINER ID        IMAGE                            COMMAND                CREATED             STATUS                             PORTS                    NAMES
+c0fadc8e9905        effectivetrainings/counter-app   "java -jar /app.jar"   32 seconds ago      Up 31 seconds (healthy)            0.0.0.0:8080-&gt;8080/tcp   redisconnector_client_1
+e9247ba16198        effectivetrainings/counter-app   "java -jar /app.jar"   33 seconds ago      Up 32 seconds (health: starting)                            redisconnector_server_1</code></pre>
+</div>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Achtung</div>
+</td>
+<td class="content">
+Hier sehen wir bereits, der Client (oben) startet viel schneller als der Server.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Mit docker-compose 1.10 ist es jetzt möglich, einen Service so lange <em>warten</em> zu lassen, bis seine Abhängigkeiten <em>healthy</em> sind.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-bash" data-lang="bash"> depends_on:
+      server:
+        condition: service_healthy</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Das Verhalten ist interessant. Ein <em>docker compose up -d</em> arbeit jetzt quasi seriell. Zunächst wird geblockt bis der Server hochgefahren ist, anschließend erst startet der Client.</p>
+</div>
+<div class="paragraph">
+<p>Hier nochmal das komplette Docker-Compose File.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-bash" data-lang="bash">version: '2.1'
+services:
+  client:
+    image: effectivetrainings/counter-app
+    environment:
+    - server_url=http://server:8080/counter
+    - application_server=false
+    networks:
+    - effectivedocker
+    ports:
+    - 8080:8080
+    depends_on:
+      server:
+        condition: service_healthy
+    healthcheck:
+       test: "curl -f localhost:8080/health || exit 1"
+  server:
+      image: effectivetrainings/counter-app
+      networks:
+      - effectivedocker
+      environment:
+      - application_server=true
+      healthcheck:
+        test: "curl -f localhost:8080/health || exit 1"
+networks:
+   effectivedocker:
+    driver: bridge</code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="fazit">Fazit</h4>
+<div class="paragraph">
+<p>Mit dem neuen Health-Check und depends on in docker-compose 1.10 ist es möglich, das Starten ganzer Stacks zu serialisieren.
+Damit lassen sich Abhängigkeiten zwischen Services sehr schön auflösen.</p>
+</div>
+<hr>
+</div>
+<div class="sect3">
+<h4 id="links">Links</h4>
+<div class="paragraph">
+<p><a href="https://github.com/effective-docker/docker-compose-health-checks">Sources</a>
+<a href="https://hub.docker.com/r/effectivetrainings/counter-app/">Docker Counter Image</a>
+'''</p>
+</div>
+</div>
 <div class="sect3">
 <h4 id="docker-training">Docker Training</h4>
 <div class="paragraph">
 <p><strong>Wollen Sie mehr erfahren?</strong>
 Ich biete <a href="http://www.effectivetrainings.de/html/workshops/effective_docker_workshop.php">Consulting / Training</a> für Docker. Schauen Sie doch mal vorbei!</p>
+</div>
 </div>
 </div>
 </div>
@@ -231,7 +470,7 @@ Ich biete <a href="http://www.effectivetrainings.de/html/workshops/effective_doc
         /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
         var disqus_shortname = 'perfectlyrandom'; // required: replace example with your forum shortname
         // var disqus_developer = 1; // Comment out when the site is live
-        var disqus_identifier = "/effective-docker-cheatsheet/";
+        var disqus_identifier = "/dependent-containers/";
 
         /* * * DON'T EDIT BELOW THIS LINE * * */
         (function() {
