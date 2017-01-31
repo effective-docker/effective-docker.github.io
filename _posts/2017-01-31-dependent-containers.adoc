@@ -1,0 +1,208 @@
+---
+layout: post
+title: Inter-Container Dependencies
+shortTitle: Container kontrolliert starten
+documentationExpanded: false
+comments: true
+postsExpanded: true
+categories: <categories>
+excerpt_separator: // excerpt
+example-caption: Beispiel
+caution-caption: Achtung
+root: ../../
+---
+== Container unter Kontrolle
+:tip-caption: Tipp
+:caution-caption: Achtung
+:question-caption: Frage
+:warning-caption: Warnung
+:important-caption: Wichtig
+
+=== TLDR;
+
+*docker-compose* *health-checks* *container-dependencies*
+
+Gerade beim Deployment von ganzen Stacks mit Docker-Compose kommt es vor, dass Container untereinander Abhängigkeiten haben. Simples Beispiel - ein einfacher Service mit einer Abhängigkeit auf eine Datenbank order einen KV-Store. Werden beide Container gleichzeitig gestartet könnte der Service Probleme bekommen, wenn die Datenbank beim Startup noch nicht da ist.
+Man kann das über einen halbwegs stabilen Retry lösen, indem man versucht, sich immer wieder gegen die Datenbank zu verbinden bis es klappt.
+Zusätzlich macht es aber Sinn, eines der neuen Features in Docker zu verwenden - *depends on* mit *healthchecks*.
+
+'''
+=== Depends on
+
+// excerpt
+
+Nehmen wir uns einen einfachen Service, der nichts weiter tut als einen Counter über einen Rest-Endpoint abzufragen - nennen wir die Anwendung *Counter*. Es gibt den Counter-Client und den Counter-Server.
+
+TIP: Faktisch ist beides die gleiche Anwendung, sie kann über einen Flag in den Server- oder Client-Mode versetzt werden.
+
+Die Verbindung zwischen den Services wird einfach über zwei Umgebungsvariablen definiert.
+
+Damit wir nicht anfangen, die Services einzeln zu starten verpacken wir das Ganze noch in ein einfaches *docker-compose*-File.
+
+TIP: Beide Container laufen im selben Netzwerk, daher können Sie problemlos kommunizieren.
+
+[source, bash]
+----
+version: '2.1'
+services:
+  client:
+    image: effectivetrainings/counter-app
+    environment:
+    - server_url=http://server:8080/client <1>
+    - application_server=false <2>
+    networks:
+    - effectivedocker
+    ports:
+    - 8080:8080
+  server:
+    image: effectivetrainings/counter-app
+    networks:
+    - effectivedocker
+    environment:
+    - application_server=true <3>
+networks:
+   effectivedocker:
+    driver: bridge
+----
+<1> Server URL zum Abfragen des Counters
+<2> Server / Client Mode
+<3> Server Mode
+
+Wir starten zwei Instanzen, eine läuft als Client (*application_server=false*), eine als Server (*application_server=true*).
+Der Server (da Server ja immer groß und mächtig sind) braucht etwas länger und hat im Start einen Sleep von 60 Sekunden eingebaut.
+Solange der Server also nicht da ist ist der Client nicht verwendbar.
+
+'''
+
+==== Health Checks
+
+Die Anwendung ist eine einfache Spring-Boot Anwendung mit http://docs.spring.io/spring-boot/docs/current/reference/html/production-ready-endpoints.html[Actuator]. Dadurch bekommen wir automatisch bereits Health-Checks für die Anwendung, die wir über den Endpunkt Health abrufen können.
+
+Ein einfacher Health-Check über _cURL_ bekommen wir über den _health_-Endpoint.
+
+[source, bash]
+----
+curl http://localhost:8080/health
+----
+
+Die Docker-Engine weiß allerdings nichts von dem Health-Status der Applikation. Docker bietet seit 1.12 standardmäßig Support für _https://effective-docker.github.io/docker-swarm-health-checks/[Health-Checks]_.
+
+Zunächst sollten wir die Abhängigkeit zwischen den Services definieren. Der Client ist *abhängig* vom Server. In _docker-compose_ deklarieren wir derartige Dependencies mit _depends_on_.
+
+[source, bash]
+----
+  client:
+    image: effectivetrainings/counter-app
+    environment:
+    - server_url=http://server:8080/counter
+    - application_server=false
+    networks:
+    - effectivedocker
+    ports:
+    - 8080:8080
+    depends_on: <1>
+    - "server"
+----
+
+<1> Abhängigkeit zu Server
+
+Zusätzlich definieren wir die Health-Checks für die beiden Services.
+
+[source, bash]
+----
+client:
+    image: effectivetrainings/counter-app
+    environment:
+    - server_url=http://server:8080/counter
+    - application_server=false
+    networks:
+    - effectivedocker
+    ports:
+    - 8080:8080
+    depends_on:
+    - "server"
+    healthcheck:
+       test: "curl -f localhost:8080/health || exit 1"
+server:
+    image: effectivetrainings/counter-app
+    networks:
+    - effectivedocker
+    environment:
+    - application_server=true
+    healthcheck:
+        test: "curl -f localhost:8080/health || exit 1"
+----
+
+Ein _docker ps_ gibt uns jetzt bereits den Health-Status mit aus.
+
+[source, bash]
+----
+CONTAINER ID        IMAGE                            COMMAND                CREATED             STATUS                             PORTS                    NAMES
+c0fadc8e9905        effectivetrainings/counter-app   "java -jar /app.jar"   32 seconds ago      Up 31 seconds (healthy)            0.0.0.0:8080->8080/tcp   redisconnector_client_1
+e9247ba16198        effectivetrainings/counter-app   "java -jar /app.jar"   33 seconds ago      Up 32 seconds (health: starting)                            redisconnector_server_1
+----
+
+CAUTION: Hier sehen wir bereits, der Client (oben) startet viel schneller als der Server.
+
+Mit docker-compose 1.10 ist es jetzt möglich, einen Service so lange _warten_ zu lassen, bis seine Abhängigkeiten _healthy_ sind.
+
+[source, bash]
+----
+ depends_on:
+      server:
+        condition: service_healthy
+----
+
+Das Verhalten ist interessant. Ein _docker compose up -d_ arbeit jetzt quasi seriell. Zunächst wird geblockt bis der Server hochgefahren ist, anschließend erst startet der Client.
+
+Hier nochmal das komplette Docker-Compose File.
+
+[source,bash]
+----
+version: '2.1'
+services:
+  client:
+    image: effectivetrainings/counter-app
+    environment:
+    - server_url=http://server:8080/counter
+    - application_server=false
+    networks:
+    - effectivedocker
+    ports:
+    - 8080:8080
+    depends_on:
+      server:
+        condition: service_healthy
+    healthcheck:
+       test: "curl -f localhost:8080/health || exit 1"
+  server:
+      image: effectivetrainings/counter-app
+      networks:
+      - effectivedocker
+      environment:
+      - application_server=true
+      healthcheck:
+        test: "curl -f localhost:8080/health || exit 1"
+networks:
+   effectivedocker:
+    driver: bridge
+----
+
+==== Fazit
+
+Mit dem neuen Health-Check und depends on in docker-compose 1.10 ist es möglich, das Starten ganzer Stacks zu serialisieren.
+Damit lassen sich Abhängigkeiten zwischen Services sehr schön auflösen.
+
+'''
+
+==== Links
+
+https://github.com/effective-docker/docker-compose-health-checks[Sources]
+https://hub.docker.com/r/effectivetrainings/counter-app/[Docker Counter Image]
+'''
+
+==== Docker Training
+
+*Wollen Sie mehr erfahren?*
+Ich biete http://www.effectivetrainings.de/html/workshops/effective_docker_workshop.php[Consulting / Training] für Docker. Schauen Sie doch mal vorbei!
+
