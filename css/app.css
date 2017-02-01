@@ -91,6 +91,13 @@ h3 {
   padding: 15px;
 }
 
+h2 {
+  color: #6aad2e !important;
+  border-radius: 2px;
+  text-align: center;
+  padding: 15px;
+}
+
 li.excerpt {
   margin-bottom: 25px;
 }
