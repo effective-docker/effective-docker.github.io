@@ -40,10 +40,12 @@
 
             <ul>
             {% for post in site.posts %}
-                <li class="excerpt">
-                    <span class="post-date"> {{ post.date | date: '%d.%m.%Y'  }}</span> <a href="{{ post.url }}">{{ post.title }}</a>
-                    {{ post.excerpt | remove: '<p>' | remove: '</p>' }}
-                </li>
+                <div onclick="document.location.href='{{ post.url }}'"><
+                    <li class="excerpt">
+                        <span class="post-date"> {{ post.date | date: '%d.%m.%Y'  }}</span> <a href="{{ post.url }}">{{ post.title }}</a>
+                        {{ post.excerpt | remove: '<p>' | remove: '</p>' }}
+                    </li>
+                </div>
               {% endfor %}
             </ul>
 
