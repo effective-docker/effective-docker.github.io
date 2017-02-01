@@ -27,9 +27,10 @@ Man kann das über einen halbwegs stabilen Retry lösen, indem man versucht, sic
 Zusätzlich macht es aber Sinn, eines der neuen Features in Docker zu verwenden - *depends on* mit *healthchecks*.
 
 '''
+// excerpt
+
 === Depends on
 
-// excerpt
 
 Nehmen wir uns einen einfachen Service, der nichts weiter tut als einen Counter über einen Rest-Endpoint abzufragen - nennen wir die Anwendung *Counter*. Es gibt den Counter-Client und den Counter-Server.
 
