@@ -163,7 +163,7 @@
 <p><strong>docker-compose</strong> <strong>health-checks</strong> <strong>container-dependencies</strong></p>
 </div>
 <div class="paragraph">
-<p>Gerade beim Deployment von ganzen Stacks mit Docker-Compose kommt es vor, dass Container untereinander Abhängigkeiten haben. Simples Beispiel - ein einfacher Service mit einer Abhängigkeit auf eine Datenbank order einen KV-Store. Werden beide Container gleichzeitig gestartet könnte der Service Probleme bekommen, wenn die Datenbank beim Startup noch nicht da ist.
+<p>Gerade beim Deployment von ganzen Stacks mit Docker-Compose kommt es vor, dass Container untereinander Abhängigkeiten haben. Simples Beispiel - ein einfacher Service mit einer Abhängigkeit auf eine Datenbank oder einen KV-Store. Werden beide Container gleichzeitig gestartet könnte der Service Probleme bekommen, wenn die Datenbank beim Startup noch nicht da ist.
 Man kann das über einen halbwegs stabilen Retry lösen, indem man versucht, sich immer wieder gegen die Datenbank zu verbinden bis es klappt.
 Zusätzlich macht es aber Sinn, eines der neuen Features in Docker zu verwenden - <strong>depends on</strong> mit <strong>healthchecks</strong>.</p>
 </div>
